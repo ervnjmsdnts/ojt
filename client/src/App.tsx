@@ -3,7 +3,7 @@ import { Button } from './components/ui/button';
 function App() {
   return (
     <div>
-      <Button>Hello Evan</Button>
+      <Button>Hello Man</Button>
     </div>
   );
 }
