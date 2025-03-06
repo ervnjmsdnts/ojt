@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
 import { BookCheck, Files, Home } from 'lucide-react';
+import React from 'react';
 
 export const Route = createFileRoute('/(authenticated)/_layout')({
   component: RouteComponent,
@@ -55,7 +56,7 @@ function AppSidebar({ userRole }: { userRole: UserRole }) {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <>
+                <React.Fragment key={item.url}>
                   {item.roles?.includes(userRole) && (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
@@ -66,7 +67,7 @@ function AppSidebar({ userRole }: { userRole: UserRole }) {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
