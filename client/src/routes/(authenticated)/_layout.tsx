@@ -62,9 +62,7 @@ function AppSidebar({ userRole }: { userRole: UserRole }) {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>Student Internship Portal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
