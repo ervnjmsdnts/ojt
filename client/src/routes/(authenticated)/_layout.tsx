@@ -10,7 +10,7 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { createFileRoute, Link, Outlet } from '@tanstack/react-router';
-import { BookCheck, Files, Home } from 'lucide-react';
+import { BookCheck, ExternalLink, Home, Search, User } from 'lucide-react';
 import React from 'react';
 
 export const Route = createFileRoute('/(authenticated)/_layout')({
@@ -33,16 +33,28 @@ function AppSidebar({ userRole }: { userRole: UserRole }) {
       roles: ['student', 'coordinator', 'admin'],
     },
     {
-      title: 'Documentation',
-      url: '/s/documentation',
-      icon: Files,
-      roles: ['student', 'coordinator'],
+      title: 'Profile',
+      url: '/s/profile',
+      icon: User,
+      roles: ['student', 'coordinator', 'admin'],
     },
     {
-      title: 'Forms',
-      url: '/s/forms',
+      title: 'Company Search',
+      url: '/s/company-search',
+      icon: Search,
+      roles: ['student', 'coordinator', 'admin'],
+    },
+    {
+      title: 'OJT Requirements',
+      url: '/s/ojt-requirements',
       icon: BookCheck,
-      roles: ['student'],
+      roles: ['student', 'coordinator', 'admin'],
+    },
+    {
+      title: 'Links',
+      url: '/s/links',
+      icon: ExternalLink,
+      roles: ['student', 'coordinator', 'admin'],
     },
   ];
 
