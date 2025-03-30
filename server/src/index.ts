@@ -1,14 +1,5 @@
 import { serve } from '@hono/node-server';
-import { logger } from 'hono/logger';
-import { Hono } from 'hono';
-
-const app = new Hono();
-
-app.use(logger());
-
-app.get('/api/test', (c) => {
-  return c.json({ message: 'hi' });
-});
+import app from './app';
 
 serve(
   {

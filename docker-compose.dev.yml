@@ -12,6 +12,8 @@ services:
       - ./server:/app
       - /app/node_modules
     command: npm run dev
+    depends_on:
+      - db
     networks:
       - ojt-app
   client:
@@ -29,7 +31,25 @@ services:
       - server
     networks:
       - ojt-app
+  db:
+    image: mysql:8.0
+    container_name: my-mysql-ojt
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: my_database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - ojt-app
 
 networks:
   ojt-app:
     driver: bridge
+
+volumes:
+  db_data:
