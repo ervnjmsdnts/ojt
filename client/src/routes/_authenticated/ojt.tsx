@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/(authenticated)/_layout/c/')({
+export const Route = createFileRoute('/_authenticated/ojt')({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <div>Coordinator</div>;
+  return <div>Hello "/_authenticated/ojt"!</div>;
 }

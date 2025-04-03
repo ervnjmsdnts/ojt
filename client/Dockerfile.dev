@@ -3,9 +3,14 @@ FROM node:20-bookworm-slim
 WORKDIR /app
 
 COPY package*.json ./
+COPY client/package*.json ./client/
 
 RUN npm ci
 
 COPY . .
 
+WORKDIR /app/client
+
 EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host"]

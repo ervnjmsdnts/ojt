@@ -8,29 +8,29 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as RegisterImport } from './routes/register'
+import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
-import { Route as authenticatedLayoutImport } from './routes/(authenticated)/_layout'
-import { Route as authenticatedLayoutSIndexImport } from './routes/(authenticated)/_layout/s/index'
-import { Route as authenticatedLayoutCIndexImport } from './routes/(authenticated)/_layout/c/index'
-import { Route as authenticatedLayoutAIndexImport } from './routes/(authenticated)/_layout/a/index'
-import { Route as authenticatedLayoutSProfileImport } from './routes/(authenticated)/_layout/s/profile'
-import { Route as authenticatedLayoutSOjtRequirementsImport } from './routes/(authenticated)/_layout/s/ojt-requirements'
-import { Route as authenticatedLayoutSLinksImport } from './routes/(authenticated)/_layout/s/links'
-import { Route as authenticatedLayoutSCompanySearchImport } from './routes/(authenticated)/_layout/s/company-search'
-
-// Create Virtual Routes
-
-const authenticatedImport = createFileRoute('/(authenticated)')()
+import { Route as AuthenticatedUsersImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedTemplatesImport } from './routes/_authenticated/templates'
+import { Route as AuthenticatedProfileImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedOjtImport } from './routes/_authenticated/ojt'
+import { Route as AuthenticatedDashboardImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCompanyImport } from './routes/_authenticated/company'
 
 // Create/Update Routes
 
-const authenticatedRoute = authenticatedImport.update({
-  id: '/(authenticated)',
+const RegisterRoute = RegisterImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthenticatedRoute = AuthenticatedImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -40,55 +40,41 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const authenticatedLayoutRoute = authenticatedLayoutImport.update({
-  id: '/_layout',
-  getParentRoute: () => authenticatedRoute,
+const AuthenticatedUsersRoute = AuthenticatedUsersImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const authenticatedLayoutSIndexRoute = authenticatedLayoutSIndexImport.update({
-  id: '/s/',
-  path: '/s/',
-  getParentRoute: () => authenticatedLayoutRoute,
+const AuthenticatedTemplatesRoute = AuthenticatedTemplatesImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const authenticatedLayoutCIndexRoute = authenticatedLayoutCIndexImport.update({
-  id: '/c/',
-  path: '/c/',
-  getParentRoute: () => authenticatedLayoutRoute,
+const AuthenticatedProfileRoute = AuthenticatedProfileImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const authenticatedLayoutAIndexRoute = authenticatedLayoutAIndexImport.update({
-  id: '/a/',
-  path: '/a/',
-  getParentRoute: () => authenticatedLayoutRoute,
+const AuthenticatedOjtRoute = AuthenticatedOjtImport.update({
+  id: '/ojt',
+  path: '/ojt',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const authenticatedLayoutSProfileRoute =
-  authenticatedLayoutSProfileImport.update({
-    id: '/s/profile',
-    path: '/s/profile',
-    getParentRoute: () => authenticatedLayoutRoute,
-  } as any)
-
-const authenticatedLayoutSOjtRequirementsRoute =
-  authenticatedLayoutSOjtRequirementsImport.update({
-    id: '/s/ojt-requirements',
-    path: '/s/ojt-requirements',
-    getParentRoute: () => authenticatedLayoutRoute,
-  } as any)
-
-const authenticatedLayoutSLinksRoute = authenticatedLayoutSLinksImport.update({
-  id: '/s/links',
-  path: '/s/links',
-  getParentRoute: () => authenticatedLayoutRoute,
+const AuthenticatedDashboardRoute = AuthenticatedDashboardImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const authenticatedLayoutSCompanySearchRoute =
-  authenticatedLayoutSCompanySearchImport.update({
-    id: '/s/company-search',
-    path: '/s/company-search',
-    getParentRoute: () => authenticatedLayoutRoute,
-  } as any)
+const AuthenticatedCompanyRoute = AuthenticatedCompanyImport.update({
+  id: '/company',
+  path: '/company',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -101,191 +87,173 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/(authenticated)': {
-      id: '/(authenticated)'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof authenticatedImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedImport
       parentRoute: typeof rootRoute
     }
-    '/(authenticated)/_layout': {
-      id: '/(authenticated)/_layout'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof authenticatedLayoutImport
-      parentRoute: typeof authenticatedRoute
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterImport
+      parentRoute: typeof rootRoute
     }
-    '/(authenticated)/_layout/s/company-search': {
-      id: '/(authenticated)/_layout/s/company-search'
-      path: '/s/company-search'
-      fullPath: '/s/company-search'
-      preLoaderRoute: typeof authenticatedLayoutSCompanySearchImport
-      parentRoute: typeof authenticatedLayoutImport
+    '/_authenticated/company': {
+      id: '/_authenticated/company'
+      path: '/company'
+      fullPath: '/company'
+      preLoaderRoute: typeof AuthenticatedCompanyImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/(authenticated)/_layout/s/links': {
-      id: '/(authenticated)/_layout/s/links'
-      path: '/s/links'
-      fullPath: '/s/links'
-      preLoaderRoute: typeof authenticatedLayoutSLinksImport
-      parentRoute: typeof authenticatedLayoutImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/(authenticated)/_layout/s/ojt-requirements': {
-      id: '/(authenticated)/_layout/s/ojt-requirements'
-      path: '/s/ojt-requirements'
-      fullPath: '/s/ojt-requirements'
-      preLoaderRoute: typeof authenticatedLayoutSOjtRequirementsImport
-      parentRoute: typeof authenticatedLayoutImport
+    '/_authenticated/ojt': {
+      id: '/_authenticated/ojt'
+      path: '/ojt'
+      fullPath: '/ojt'
+      preLoaderRoute: typeof AuthenticatedOjtImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/(authenticated)/_layout/s/profile': {
-      id: '/(authenticated)/_layout/s/profile'
-      path: '/s/profile'
-      fullPath: '/s/profile'
-      preLoaderRoute: typeof authenticatedLayoutSProfileImport
-      parentRoute: typeof authenticatedLayoutImport
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/(authenticated)/_layout/a/': {
-      id: '/(authenticated)/_layout/a/'
-      path: '/a'
-      fullPath: '/a'
-      preLoaderRoute: typeof authenticatedLayoutAIndexImport
-      parentRoute: typeof authenticatedLayoutImport
+    '/_authenticated/templates': {
+      id: '/_authenticated/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof AuthenticatedTemplatesImport
+      parentRoute: typeof AuthenticatedImport
     }
-    '/(authenticated)/_layout/c/': {
-      id: '/(authenticated)/_layout/c/'
-      path: '/c'
-      fullPath: '/c'
-      preLoaderRoute: typeof authenticatedLayoutCIndexImport
-      parentRoute: typeof authenticatedLayoutImport
-    }
-    '/(authenticated)/_layout/s/': {
-      id: '/(authenticated)/_layout/s/'
-      path: '/s'
-      fullPath: '/s'
-      preLoaderRoute: typeof authenticatedLayoutSIndexImport
-      parentRoute: typeof authenticatedLayoutImport
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthenticatedUsersImport
+      parentRoute: typeof AuthenticatedImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface authenticatedLayoutRouteChildren {
-  authenticatedLayoutSCompanySearchRoute: typeof authenticatedLayoutSCompanySearchRoute
-  authenticatedLayoutSLinksRoute: typeof authenticatedLayoutSLinksRoute
-  authenticatedLayoutSOjtRequirementsRoute: typeof authenticatedLayoutSOjtRequirementsRoute
-  authenticatedLayoutSProfileRoute: typeof authenticatedLayoutSProfileRoute
-  authenticatedLayoutAIndexRoute: typeof authenticatedLayoutAIndexRoute
-  authenticatedLayoutCIndexRoute: typeof authenticatedLayoutCIndexRoute
-  authenticatedLayoutSIndexRoute: typeof authenticatedLayoutSIndexRoute
+interface AuthenticatedRouteChildren {
+  AuthenticatedCompanyRoute: typeof AuthenticatedCompanyRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedOjtRoute: typeof AuthenticatedOjtRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
+  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
 }
 
-const authenticatedLayoutRouteChildren: authenticatedLayoutRouteChildren = {
-  authenticatedLayoutSCompanySearchRoute:
-    authenticatedLayoutSCompanySearchRoute,
-  authenticatedLayoutSLinksRoute: authenticatedLayoutSLinksRoute,
-  authenticatedLayoutSOjtRequirementsRoute:
-    authenticatedLayoutSOjtRequirementsRoute,
-  authenticatedLayoutSProfileRoute: authenticatedLayoutSProfileRoute,
-  authenticatedLayoutAIndexRoute: authenticatedLayoutAIndexRoute,
-  authenticatedLayoutCIndexRoute: authenticatedLayoutCIndexRoute,
-  authenticatedLayoutSIndexRoute: authenticatedLayoutSIndexRoute,
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedCompanyRoute: AuthenticatedCompanyRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedOjtRoute: AuthenticatedOjtRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
+  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
 }
 
-const authenticatedLayoutRouteWithChildren =
-  authenticatedLayoutRoute._addFileChildren(authenticatedLayoutRouteChildren)
-
-interface authenticatedRouteChildren {
-  authenticatedLayoutRoute: typeof authenticatedLayoutRouteWithChildren
-}
-
-const authenticatedRouteChildren: authenticatedRouteChildren = {
-  authenticatedLayoutRoute: authenticatedLayoutRouteWithChildren,
-}
-
-const authenticatedRouteWithChildren = authenticatedRoute._addFileChildren(
-  authenticatedRouteChildren,
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
 )
 
 export interface FileRoutesByFullPath {
-  '/': typeof authenticatedLayoutRouteWithChildren
-  '/s/company-search': typeof authenticatedLayoutSCompanySearchRoute
-  '/s/links': typeof authenticatedLayoutSLinksRoute
-  '/s/ojt-requirements': typeof authenticatedLayoutSOjtRequirementsRoute
-  '/s/profile': typeof authenticatedLayoutSProfileRoute
-  '/a': typeof authenticatedLayoutAIndexRoute
-  '/c': typeof authenticatedLayoutCIndexRoute
-  '/s': typeof authenticatedLayoutSIndexRoute
+  '/': typeof IndexRoute
+  '': typeof AuthenticatedRouteWithChildren
+  '/register': typeof RegisterRoute
+  '/company': typeof AuthenticatedCompanyRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/ojt': typeof AuthenticatedOjtRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/templates': typeof AuthenticatedTemplatesRoute
+  '/users': typeof AuthenticatedUsersRoute
 }
 
 export interface FileRoutesByTo {
-  '/': typeof authenticatedLayoutRouteWithChildren
-  '/s/company-search': typeof authenticatedLayoutSCompanySearchRoute
-  '/s/links': typeof authenticatedLayoutSLinksRoute
-  '/s/ojt-requirements': typeof authenticatedLayoutSOjtRequirementsRoute
-  '/s/profile': typeof authenticatedLayoutSProfileRoute
-  '/a': typeof authenticatedLayoutAIndexRoute
-  '/c': typeof authenticatedLayoutCIndexRoute
-  '/s': typeof authenticatedLayoutSIndexRoute
+  '/': typeof IndexRoute
+  '': typeof AuthenticatedRouteWithChildren
+  '/register': typeof RegisterRoute
+  '/company': typeof AuthenticatedCompanyRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/ojt': typeof AuthenticatedOjtRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/templates': typeof AuthenticatedTemplatesRoute
+  '/users': typeof AuthenticatedUsersRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/(authenticated)': typeof authenticatedRouteWithChildren
-  '/(authenticated)/_layout': typeof authenticatedLayoutRouteWithChildren
-  '/(authenticated)/_layout/s/company-search': typeof authenticatedLayoutSCompanySearchRoute
-  '/(authenticated)/_layout/s/links': typeof authenticatedLayoutSLinksRoute
-  '/(authenticated)/_layout/s/ojt-requirements': typeof authenticatedLayoutSOjtRequirementsRoute
-  '/(authenticated)/_layout/s/profile': typeof authenticatedLayoutSProfileRoute
-  '/(authenticated)/_layout/a/': typeof authenticatedLayoutAIndexRoute
-  '/(authenticated)/_layout/c/': typeof authenticatedLayoutCIndexRoute
-  '/(authenticated)/_layout/s/': typeof authenticatedLayoutSIndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/register': typeof RegisterRoute
+  '/_authenticated/company': typeof AuthenticatedCompanyRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/ojt': typeof AuthenticatedOjtRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
+  '/_authenticated/users': typeof AuthenticatedUsersRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/s/company-search'
-    | '/s/links'
-    | '/s/ojt-requirements'
-    | '/s/profile'
-    | '/a'
-    | '/c'
-    | '/s'
+    | ''
+    | '/register'
+    | '/company'
+    | '/dashboard'
+    | '/ojt'
+    | '/profile'
+    | '/templates'
+    | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/s/company-search'
-    | '/s/links'
-    | '/s/ojt-requirements'
-    | '/s/profile'
-    | '/a'
-    | '/c'
-    | '/s'
+    | ''
+    | '/register'
+    | '/company'
+    | '/dashboard'
+    | '/ojt'
+    | '/profile'
+    | '/templates'
+    | '/users'
   id:
     | '__root__'
     | '/'
-    | '/(authenticated)'
-    | '/(authenticated)/_layout'
-    | '/(authenticated)/_layout/s/company-search'
-    | '/(authenticated)/_layout/s/links'
-    | '/(authenticated)/_layout/s/ojt-requirements'
-    | '/(authenticated)/_layout/s/profile'
-    | '/(authenticated)/_layout/a/'
-    | '/(authenticated)/_layout/c/'
-    | '/(authenticated)/_layout/s/'
+    | '/_authenticated'
+    | '/register'
+    | '/_authenticated/company'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/ojt'
+    | '/_authenticated/profile'
+    | '/_authenticated/templates'
+    | '/_authenticated/users'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  authenticatedRoute: typeof authenticatedRouteWithChildren
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  RegisterRoute: typeof RegisterRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  authenticatedRoute: authenticatedRouteWithChildren,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  RegisterRoute: RegisterRoute,
 }
 
 export const routeTree = rootRoute
@@ -299,58 +267,50 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/(authenticated)"
+        "/_authenticated",
+        "/register"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/(authenticated)": {
-      "filePath": "(authenticated)",
+    "/_authenticated": {
+      "filePath": "_authenticated.tsx",
       "children": [
-        "/(authenticated)/_layout"
+        "/_authenticated/company",
+        "/_authenticated/dashboard",
+        "/_authenticated/ojt",
+        "/_authenticated/profile",
+        "/_authenticated/templates",
+        "/_authenticated/users"
       ]
     },
-    "/(authenticated)/_layout": {
-      "filePath": "(authenticated)/_layout.tsx",
-      "parent": "/(authenticated)",
-      "children": [
-        "/(authenticated)/_layout/s/company-search",
-        "/(authenticated)/_layout/s/links",
-        "/(authenticated)/_layout/s/ojt-requirements",
-        "/(authenticated)/_layout/s/profile",
-        "/(authenticated)/_layout/a/",
-        "/(authenticated)/_layout/c/",
-        "/(authenticated)/_layout/s/"
-      ]
+    "/register": {
+      "filePath": "register.tsx"
     },
-    "/(authenticated)/_layout/s/company-search": {
-      "filePath": "(authenticated)/_layout/s/company-search.tsx",
-      "parent": "/(authenticated)/_layout"
+    "/_authenticated/company": {
+      "filePath": "_authenticated/company.tsx",
+      "parent": "/_authenticated"
     },
-    "/(authenticated)/_layout/s/links": {
-      "filePath": "(authenticated)/_layout/s/links.tsx",
-      "parent": "/(authenticated)/_layout"
+    "/_authenticated/dashboard": {
+      "filePath": "_authenticated/dashboard.tsx",
+      "parent": "/_authenticated"
     },
-    "/(authenticated)/_layout/s/ojt-requirements": {
-      "filePath": "(authenticated)/_layout/s/ojt-requirements.tsx",
-      "parent": "/(authenticated)/_layout"
+    "/_authenticated/ojt": {
+      "filePath": "_authenticated/ojt.tsx",
+      "parent": "/_authenticated"
     },
-    "/(authenticated)/_layout/s/profile": {
-      "filePath": "(authenticated)/_layout/s/profile.tsx",
-      "parent": "/(authenticated)/_layout"
+    "/_authenticated/profile": {
+      "filePath": "_authenticated/profile.tsx",
+      "parent": "/_authenticated"
     },
-    "/(authenticated)/_layout/a/": {
-      "filePath": "(authenticated)/_layout/a/index.tsx",
-      "parent": "/(authenticated)/_layout"
+    "/_authenticated/templates": {
+      "filePath": "_authenticated/templates.tsx",
+      "parent": "/_authenticated"
     },
-    "/(authenticated)/_layout/c/": {
-      "filePath": "(authenticated)/_layout/c/index.tsx",
-      "parent": "/(authenticated)/_layout"
-    },
-    "/(authenticated)/_layout/s/": {
-      "filePath": "(authenticated)/_layout/s/index.tsx",
-      "parent": "/(authenticated)/_layout"
+    "/_authenticated/users": {
+      "filePath": "_authenticated/users.tsx",
+      "parent": "/_authenticated"
     }
   }
 }

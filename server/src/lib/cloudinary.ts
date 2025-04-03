@@ -16,13 +16,21 @@ export async function uploadFile(file: File) {
   const result = await new Promise<{ url: string; public_id: string }>(
     (resolve, reject) => {
       cloudinary.uploader
-        .upload_stream({ resource_type: 'raw' }, function (error, result) {
-          if (error || result === undefined) {
-            reject(error || new Error('Upload result is undefined'));
-            return;
-          }
-          resolve(result);
-        })
+        .upload_stream(
+          {
+            resource_type: 'raw',
+            use_filename: true,
+            unique_filename: false,
+            filename_override: file.name,
+          },
+          function (error, result) {
+            if (error || result === undefined) {
+              reject(error || new Error('Upload result is undefined'));
+              return;
+            }
+            resolve(result);
+          },
+        )
         .end(buffer);
     },
   );

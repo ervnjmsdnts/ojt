@@ -8,7 +8,10 @@ export const users = table('users', {
   srCode: t.varchar('sr_code', { length: 50 }).notNull().unique(),
   password: t.varchar('password', { length: 255 }).notNull(),
   fullName: t.varchar('full_name', { length: 100 }).notNull(),
-  role: t.mysqlEnum('role', ['admin', 'coordinator', 'student']).notNull(),
+  role: t
+    .mysqlEnum('role', ['admin', 'coordinator', 'student'])
+    .notNull()
+    .default('student'),
   gender: t.mysqlEnum('gender', ['male', 'female']).notNull(),
   createdAt: t
     .bigint('created_at', { mode: 'number' })
@@ -42,6 +45,9 @@ export const companies = table('companies', {
     .default(sql`(UNIX_TIMESTAMP() * 1000)`)
     .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
 });
+
+export const insertCompanySchema = createInsertSchema(companies);
+export const updateCompanySchema = createUpdateSchema(companies);
 
 export const ojtApplication = table('ojt_application', {
   id: t.int('id').primaryKey().autoincrement(),
