@@ -7,7 +7,7 @@ import {
   studentSubmissions,
   users,
 } from '../db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 
 export const coordinatorRoutes = new Hono().get(
   '/ojt',
@@ -63,7 +63,7 @@ export const coordinatorRoutes = new Hono().get(
           formTemplates,
           eq(studentSubmissions.templateId, formTemplates.id),
         )
-        .where(sql`${studentSubmissions.ojtId} IN (${ojtAppIds.join(',')})`);
+        .where(inArray(studentSubmissions.ojtId, ojtAppIds));
 
       const submissionsByOjt: Record<number, typeof submissions> = {};
       for (const sub of submissions) {

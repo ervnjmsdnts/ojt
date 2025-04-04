@@ -9,7 +9,12 @@ import {
   users,
 } from '../db/schema';
 import { db } from '../db';
-import { asc, desc, eq, sql } from 'drizzle-orm';
+import { asc, eq, sql } from 'drizzle-orm';
+import { z } from 'zod';
+
+const updateCompanyNameSchema = z.object({
+  name: z.string().min(1),
+});
 
 export const companyRoutes = new Hono()
   .post(
@@ -63,6 +68,9 @@ export const companyRoutes = new Hono()
     try {
       const maleCountExpr = sql<number>`SUM(CASE WHEN ${users.gender} = 'male' THEN 1 ELSE 0 END)`;
       const femaleCountExpr = sql<number>`SUM(CASE WHEN ${users.gender} = 'female' THEN 1 ELSE 0 END)`;
+      const totalStudentsExpr = sql<number>`
+      COUNT(DISTINCT ${users.id})
+    `;
 
       const results = await db
         .select({
@@ -70,6 +78,7 @@ export const companyRoutes = new Hono()
           name: companies.name,
           maleCount: maleCountExpr,
           femaleCount: femaleCountExpr,
+          totalStudents: totalStudentsExpr,
         })
         .from(companies)
         .leftJoin(ojtApplication, eq(ojtApplication.companyId, companies.id))
@@ -82,4 +91,35 @@ export const companyRoutes = new Hono()
       console.error(error);
       return c.json({ message: 'Something went wrong' }, 500);
     }
-  });
+  })
+  .patch(
+    '/:id/name',
+    requireRole(['admin', 'coordinator']),
+    zValidator('json', updateCompanyNameSchema),
+    async (c) => {
+      try {
+        const idParam = c.req.param('id');
+        const id = Number(idParam);
+
+        if (isNaN(id)) {
+          return c.json({ message: 'Invalid company id provided' }, 400);
+        }
+
+        const data = c.req.valid('json');
+
+        const [result] = await db
+          .update(companies)
+          .set({ name: data.name })
+          .where(eq(companies.id, id));
+
+        if (result.affectedRows === 0) {
+          return c.json({ message: 'Company not found' }, 404);
+        }
+
+        return c.json({ message: 'Company name updated successfully' });
+      } catch (error) {
+        console.error(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  );

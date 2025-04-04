@@ -1,13 +1,29 @@
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
-import { TableCell, TableRow } from './ui/table';
+import { TableCell, TableHead, TableRow } from './ui/table';
 
 export default function TableRowSkeleton({
   columnCount,
+  isHeader = false,
+  rowCount = 10,
 }: {
   columnCount: number;
+  isHeader?: boolean;
+  rowCount?: number;
 }) {
-  return new Array(10).fill('').map((_, index) => (
+  if (isHeader) {
+    return (
+      <TableRow>
+        {new Array(columnCount).fill('').map((_, i) => (
+          <TableHead key={i}>
+            <Skeleton className='h-4 w-[100px]' />
+          </TableHead>
+        ))}
+      </TableRow>
+    );
+  }
+
+  return new Array(rowCount).fill('').map((_, index) => (
     <TableRow key={index}>
       {new Array(columnCount).fill('').map((_, index) => (
         <TableCell

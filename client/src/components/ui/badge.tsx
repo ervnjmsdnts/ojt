@@ -25,6 +25,8 @@ const badgeVariants = cva(
         ['post-ojt']:
           'border-transparent bg-blue-400 text-white hover:bg-blue-400/80',
         ojt: 'border-transparent bg-red-400 text-white hover:bg-red-400/80',
+        completed:
+          'border-transparent bg-green-400 text-white hover:bg-green-400/80',
       },
     },
     defaultVariants: {

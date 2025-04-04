@@ -1,7 +1,7 @@
 import { hc } from 'hono/client';
 import type { ApiRoutes } from '@server/app';
 import { queryOptions } from '@tanstack/react-query';
-import { OJTCategory, Role } from './types';
+import { OJTCategory, OJTStatus, Role } from './types';
 
 const client = hc<ApiRoutes>('/');
 
@@ -120,6 +120,63 @@ export async function updateTemplateTitle(data: UpdateTemplateTitle) {
   if (!res.ok) {
     throw new Error('server error');
   }
+  const json = await res.json();
+  return json;
+}
+
+export type UpdateCompanyName = {
+  name: string;
+  companyId: number;
+};
+
+export async function updateCompanyName(data: UpdateCompanyName) {
+  const res = await api.company[':id'].name.$patch({
+    json: { name: data.name },
+    param: { id: data.companyId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function getOJTsAdmin() {
+  const res = await api.student.$get();
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function getSingleOJTAdmin(data: { id: string }) {
+  const res = await api.student[':id'].$get({ param: { id: data.id } });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export type UpdateOJTStatus = {
+  status: OJTStatus;
+  ojtId: number;
+};
+
+export async function updateOJTStatus(data: UpdateOJTStatus) {
+  const res = await api.student[':id'].status.$patch({
+    json: { status: data.status },
+    param: { id: data.ojtId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
   const json = await res.json();
   return json;
 }

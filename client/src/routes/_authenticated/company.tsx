@@ -1,4 +1,5 @@
 import AddCompanyDialog from '@/components/companies/add-company-dialog';
+import { EditableTableCell } from '@/components/editable-table-cell';
 import PageHeaderText from '@/components/page-header-text';
 import Pagination from '@/components/pagination';
 import TableRowSkeleton from '@/components/table-row-skeleton';
@@ -14,11 +15,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import usePagination from '@/hooks/use-pagination';
-import { getCompaniesWithCount } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { getCompaniesWithCount, updateCompanyName } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Archive } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { CSVLink } from 'react-csv';
 
 export const Route = createFileRoute('/_authenticated/company')({
   component: RouteComponent,
@@ -40,7 +43,36 @@ function RouteComponent() {
     queryKey: ['companies'],
     queryFn: getCompaniesWithCount,
   });
+
+  const queryClient = useQueryClient();
+
   const [filterName, setFilterName] = useState('');
+
+  const [updateName, setUpdateName] = useState('');
+  const [editingRow, setEditingRow] = useState<number | null>(null);
+
+  const updateNameMutation = useMutation({ mutationFn: updateCompanyName });
+
+  const onUpdateName = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>, data: { companyId: number }) => {
+      if (e.key === 'Enter') {
+        if (!updateName) {
+          return toast.error('Name cannot be empty');
+        }
+        updateNameMutation.mutate(
+          { companyId: data.companyId, name: updateName },
+          {
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: ['companies'] });
+              setEditingRow(null);
+              toast.success('Company name updated successfully');
+            },
+          },
+        );
+      }
+    },
+    [updateName],
+  );
 
   const filteredCompanies = useMemo(() => {
     if (!companies) return [];
@@ -58,6 +90,18 @@ function RouteComponent() {
     return <p>Error</p>;
   }
 
+  const csvData = useMemo(
+    () =>
+      filteredCompanies.map((company, index) => ({
+        'No.': index + 1,
+        'Company Name': company.name,
+        'Male Count': company.maleCount,
+        'Female Count': company.femaleCount,
+        'Total Students': company.totalStudents,
+      })),
+    [filteredCompanies],
+  );
+
   const { currentItems, paginate, currentPage, totalPages } =
     usePagination<CompanyWithCount>(filteredCompanies);
 
@@ -72,7 +116,14 @@ function RouteComponent() {
             placeholder='Search by name...'
           />
         </div>
-        <AddCompanyDialog />
+        <div className='flex items-center gap-2'>
+          <Button asChild>
+            <CSVLink data={csvData} filename='company_data'>
+              Export CSV
+            </CSVLink>
+          </Button>
+          <AddCompanyDialog />
+        </div>
       </div>
       <div className='flex flex-1 flex-col gap-4'>
         <div className='border h-full rounded-lg'>
@@ -89,9 +140,26 @@ function RouteComponent() {
               {isPending ? (
                 <TableRowSkeleton columnCount={4} />
               ) : (
-                currentItems.map((company) => (
+                currentItems.map((company, index) => (
                   <TableRow key={company.id}>
-                    <TableCell>{company.name}</TableCell>
+                    <EditableTableCell
+                      editing={editingRow === index}
+                      onToggleEditing={() =>
+                        setEditingRow(editingRow === index ? null : index)
+                      }>
+                      {editingRow === index ? (
+                        <Input
+                          defaultValue={company.name}
+                          onChange={(e) => setUpdateName(e.target.value)}
+                          onKeyDown={(e) =>
+                            onUpdateName(e, { companyId: company.id })
+                          }
+                          className='w-[200px]'
+                        />
+                      ) : (
+                        company.name
+                      )}
+                    </EditableTableCell>
                     <TableCell>{company.maleCount}</TableCell>
                     <TableCell>{company.femaleCount}</TableCell>
                     <TableCell>
