@@ -7,9 +7,10 @@ import { db } from '../db';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-const createFormTemplateSchema = insertFormTemplateSchema.omit({
+const createTemplateSchema = insertFormTemplateSchema.omit({
   fileUrl: true,
   uploadedBy: true,
+  type: true,
 });
 
 const updateCategorySchema = z.object({
@@ -24,7 +25,7 @@ export const templateRoutes = new Hono()
   .post(
     '/',
     requireRole(['coordinator', 'admin']),
-    zValidator('form', createFormTemplateSchema),
+    zValidator('form', createTemplateSchema),
     async (c) => {
       try {
         const userId = c.get('userId');
@@ -41,6 +42,7 @@ export const templateRoutes = new Hono()
         const { url } = await uploadFile(file);
 
         await db.insert(formTemplates).values({
+          type: 'template',
           title: data.title,
           category: data.category,
           fileUrl: url,
@@ -48,6 +50,36 @@ export const templateRoutes = new Hono()
         });
 
         return c.json({ message: 'Template created' }, 201);
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'something went wrong' }, 400);
+      }
+    },
+  )
+  .post(
+    '/form',
+    requireRole(['coordinator', 'admin']),
+    zValidator('json', createTemplateSchema),
+    async (c) => {
+      try {
+        const userId = c.get('userId');
+
+        if (!userId) {
+          return c.json({ message: 'Unauthorized' }, 401);
+        }
+
+        const data = c.req.valid('json');
+
+        await db.insert(formTemplates).values({
+          type: 'form',
+          title: data.title,
+          category: data.category,
+          formId: data.formId,
+          formUrl: data.formUrl,
+          uploadedBy: userId,
+        });
+
+        return c.json({ message: 'Form created' }, 201);
       } catch (error) {
         console.log(error);
         return c.json({ message: 'something went wrong' }, 400);
@@ -66,8 +98,11 @@ export const templateRoutes = new Hono()
         .select({
           id: formTemplates.id,
           title: formTemplates.title,
+          type: formTemplates.type,
           category: formTemplates.category,
           fileUrl: formTemplates.fileUrl,
+          formId: formTemplates.formId,
+          formUrl: formTemplates.formUrl,
           uploadedBy: {
             id: users.id,
             fullName: users.fullName,

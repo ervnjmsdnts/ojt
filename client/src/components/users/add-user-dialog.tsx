@@ -31,19 +31,13 @@ import { useState } from 'react';
 const schema = z.object({
   srCode: z.string().min(1),
   password: z.string().min(1),
+  email: z.string().email().min(1),
   fullName: z.string().min(1),
   gender: z.enum(['male', 'female']),
   role: z.enum(['student', 'coordinator', 'admin']),
 });
 
 type Schema = z.infer<typeof schema>;
-
-async function register(data: Schema) {
-  const res = await api.auth.register.$post({ json: data });
-  if (!res.ok) {
-    throw new Error('server error');
-  }
-}
 
 async function createUser(data: Schema) {
   const res = await api.user.$post({ json: data });
@@ -57,7 +51,6 @@ export default function AddUserDialog() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 
-  const { mutate: registerMutate } = useMutation({ mutationFn: register });
   const { mutate: createUserMutate } = useMutation({ mutationFn: createUser });
 
   const onAutoGeneratePassword = () => {
@@ -87,23 +80,13 @@ export default function AddUserDialog() {
       setOpen(false);
     };
 
-    if (data.role === 'student') {
-      registerMutate(data, {
-        onSuccess: () => handleSuccess(),
-        onError: (error) => {
-          console.log('STUDENT ERROR:', error);
-          handleError();
-        },
-      });
-    } else {
-      createUserMutate(data, {
-        onSuccess: () => handleSuccess(),
-        onError: (error) => {
-          console.log('USER ERROR:', error);
-          handleError();
-        },
-      });
-    }
+    createUserMutate(data, {
+      onSuccess: () => handleSuccess(),
+      onError: (error) => {
+        console.log('USER ERROR:', error);
+        handleError();
+      },
+    });
   };
 
   return (
@@ -125,6 +108,18 @@ export default function AddUserDialog() {
                   <FormLabel>SR-Code</FormLabel>
                   <FormControl>
                     <Input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='email'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address</FormLabel>
+                  <FormControl>
+                    <Input type='email' {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -218,7 +213,6 @@ export default function AddUserDialog() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value='student'>Student</SelectItem>
                       <SelectItem value='coordinator'>Coordinator</SelectItem>
                       <SelectItem value='admin'>Admin</SelectItem>
                     </SelectContent>

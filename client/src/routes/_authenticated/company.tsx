@@ -15,15 +15,28 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import usePagination from '@/hooks/use-pagination';
-import { getCompaniesWithCount, updateCompanyName } from '@/lib/api';
+import {
+  getCompaniesWithCount,
+  updateCompanyName,
+  userQueryOptions,
+} from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Archive } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { CSVLink } from 'react-csv';
+import DoubleClickTooltip from '@/components/double-click-tooltip';
 
 export const Route = createFileRoute('/_authenticated/company')({
+  beforeLoad: async ({ context }) => {
+    const queryClient = context.queryClient;
+    try {
+      const data = await queryClient.fetchQuery(userQueryOptions);
+      return { user: data };
+    } catch (error) {
+      return { user: null };
+    }
+  },
   component: RouteComponent,
 });
 
@@ -35,6 +48,7 @@ type CompanyWithCount = {
 };
 
 function RouteComponent() {
+  const { user } = Route.useRouteContext();
   const {
     isPending,
     error,
@@ -105,6 +119,8 @@ function RouteComponent() {
   const { currentItems, paginate, currentPage, totalPages } =
     usePagination<CompanyWithCount>(filteredCompanies);
 
+  const isAdminOrCoordinator = user?.role !== 'student';
+
   return (
     <SidebarInset className='py-4 px-8 flex flex-col gap-4'>
       <PageHeaderText>Company</PageHeaderText>
@@ -116,24 +132,36 @@ function RouteComponent() {
             placeholder='Search by name...'
           />
         </div>
-        <div className='flex items-center gap-2'>
-          <Button asChild>
-            <CSVLink data={csvData} filename='company_data'>
-              Export CSV
-            </CSVLink>
-          </Button>
-          <AddCompanyDialog />
-        </div>
+        {isAdminOrCoordinator && (
+          <div className='flex items-center gap-2'>
+            <Button asChild>
+              <CSVLink data={csvData} filename='company_data'>
+                Export CSV
+              </CSVLink>
+            </Button>
+            <AddCompanyDialog />
+          </div>
+        )}
       </div>
       <div className='flex flex-1 flex-col gap-4'>
         <div className='border h-full rounded-lg'>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Male Count</TableHead>
-                <TableHead>Female Count</TableHead>
-                <TableHead className='text-center'>Actions</TableHead>
+                <TableHead>
+                  {isAdminOrCoordinator ? (
+                    <DoubleClickTooltip text='Name' />
+                  ) : (
+                    'Name'
+                  )}
+                </TableHead>
+                {isAdminOrCoordinator && (
+                  <>
+                    <TableHead>Male Count</TableHead>
+                    <TableHead>Female Count</TableHead>
+                  </>
+                )}
+                {/* <TableHead className='text-center'>Actions</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -142,33 +170,41 @@ function RouteComponent() {
               ) : (
                 currentItems.map((company, index) => (
                   <TableRow key={company.id}>
-                    <EditableTableCell
-                      editing={editingRow === index}
-                      onToggleEditing={() =>
-                        setEditingRow(editingRow === index ? null : index)
-                      }>
-                      {editingRow === index ? (
-                        <Input
-                          defaultValue={company.name}
-                          onChange={(e) => setUpdateName(e.target.value)}
-                          onKeyDown={(e) =>
-                            onUpdateName(e, { companyId: company.id })
-                          }
-                          className='w-[200px]'
-                        />
-                      ) : (
-                        company.name
-                      )}
-                    </EditableTableCell>
-                    <TableCell>{company.maleCount}</TableCell>
-                    <TableCell>{company.femaleCount}</TableCell>
-                    <TableCell>
+                    {user?.role !== 'student' ? (
+                      <EditableTableCell
+                        editing={editingRow === index}
+                        onToggleEditing={() =>
+                          setEditingRow(editingRow === index ? null : index)
+                        }>
+                        {editingRow === index ? (
+                          <Input
+                            defaultValue={company.name}
+                            onChange={(e) => setUpdateName(e.target.value)}
+                            onKeyDown={(e) =>
+                              onUpdateName(e, { companyId: company.id })
+                            }
+                            className='w-[200px]'
+                          />
+                        ) : (
+                          company.name
+                        )}
+                      </EditableTableCell>
+                    ) : (
+                      <TableCell>{company.name}</TableCell>
+                    )}
+                    {isAdminOrCoordinator && (
+                      <>
+                        <TableCell>{company.maleCount}</TableCell>
+                        <TableCell>{company.femaleCount}</TableCell>
+                      </>
+                    )}
+                    {/* <TableCell>
                       <div className='flex justify-center'>
                         <Button variant='destructive' size='icon'>
                           <Archive />
                         </Button>
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))
               )}

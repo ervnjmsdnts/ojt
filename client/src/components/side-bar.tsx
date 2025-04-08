@@ -17,6 +17,10 @@ import {
   Users2,
   ClipboardCheck,
   ClipboardList,
+  School,
+  GraduationCap,
+  Presentation,
+  UserPlus,
 } from 'lucide-react';
 import React from 'react';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
@@ -59,9 +63,39 @@ export default function AppSidebar({ user }: { user: User }) {
       roles: ['student', 'coordinator', 'admin'],
     },
     {
-      title: 'Templates',
+      title: 'Reports',
+      url: '/reports',
+      icon: ClipboardList,
+      roles: ['student'],
+    },
+    {
+      title: 'Forms & Templates',
       url: '/templates',
       icon: ClipboardList,
+      roles: ['coordinator', 'admin'],
+    },
+    {
+      title: 'Requests',
+      url: '/requests',
+      icon: UserPlus,
+      roles: ['coordinator'],
+    },
+    {
+      title: 'Departments',
+      url: '/departments',
+      icon: School,
+      roles: ['coordinator', 'admin'],
+    },
+    {
+      title: 'Programs',
+      url: '/programs',
+      icon: GraduationCap,
+      roles: ['coordinator', 'admin'],
+    },
+    {
+      title: 'Classes',
+      url: '/classes',
+      icon: Presentation,
       roles: ['coordinator', 'admin'],
     },
   ];

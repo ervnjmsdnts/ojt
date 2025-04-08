@@ -5,9 +5,13 @@ import { zValidator } from '@hono/zod-validator';
 import { uploadFile } from '../lib/cloudinary';
 import { db } from '../db';
 import {
+  classes,
   companies,
+  departments,
   formTemplates,
+  logs,
   ojtApplication,
+  programs,
   studentSubmissions,
   users,
 } from '../db/schema';
@@ -16,10 +20,23 @@ import { alias } from 'drizzle-orm/mysql-core';
 
 const createRequirementSchema = z.object({
   templateId: z.coerce.number().min(1),
+  file: z.instanceof(File),
 });
 
 const updateOJTStatusSchema = z.object({
   status: z.enum(['pre-ojt', 'ojt', 'post-ojt', 'completed']),
+});
+
+const updateOJTSubmissionRemarkSchema = z.object({
+  remark: z.string().min(1),
+});
+
+const updateOJTSubmissionStatusSchema = z.object({
+  status: z.enum(['pending', 'approved', 'resubmit']),
+});
+
+const updateOJTClassSchema = z.object({
+  classId: z.coerce.number().min(1),
 });
 
 export const studentRoutes = new Hono()
@@ -36,7 +53,7 @@ export const studentRoutes = new Hono()
         }
 
         const [ojt] = await db
-          .select({ id: ojtApplication.id })
+          .select()
           .from(ojtApplication)
           .where(eq(ojtApplication.studentId, userId));
 
@@ -46,15 +63,24 @@ export const studentRoutes = new Hono()
 
         const data = c.req.valid('form');
 
-        const form = await c.req.formData();
-        const file = form.get('file') as File;
+        const [template] = await db
+          .select()
+          .from(formTemplates)
+          .where(eq(formTemplates.id, data.templateId));
 
-        const { url } = await uploadFile(file);
+        const { url } = await uploadFile(data.file);
 
-        await db.insert(studentSubmissions).values({
-          ojtId: ojt.id,
-          submittedFileUrl: url,
-          templateId: data.templateId,
+        await db.transaction(async (tx) => {
+          await tx.insert(studentSubmissions).values({
+            ojtId: ojt.id,
+            submittedFileUrl: url,
+            templateId: data.templateId,
+          });
+
+          await tx.insert(logs).values({
+            ojtId: ojt.id,
+            text: `Submitted document on ${template.title}`,
+          });
         });
 
         return c.json({ message: 'Student submission successful' });
@@ -74,6 +100,19 @@ export const studentRoutes = new Hono()
           studentId: ojtApplication.studentId,
           coordinatorId: ojtApplication.coordinatorId,
           companyId: ojtApplication.companyId,
+          classId: ojtApplication.classId,
+          program: {
+            id: programs.id,
+            name: programs.name,
+          },
+          department: {
+            id: departments.id,
+            name: departments.name,
+          },
+          class: {
+            id: classes.id,
+            name: classes.name,
+          },
           student: {
             id: users.id,
             fullName: users.fullName,
@@ -100,6 +139,9 @@ export const studentRoutes = new Hono()
           eq(ojtApplication.coordinatorId, coordinatorAlias.id),
         )
         .leftJoin(companies, eq(ojtApplication.companyId, companies.id))
+        .leftJoin(classes, eq(ojtApplication.classId, classes.id))
+        .leftJoin(programs, eq(classes.programId, programs.id))
+        .leftJoin(departments, eq(classes.departmentId, departments.id))
         .orderBy(sql`LOWER(${users.fullName})`);
 
       if (!ojtApps.length) {
@@ -116,9 +158,15 @@ export const studentRoutes = new Hono()
           ojtId: studentSubmissions.ojtId,
           submittedFileUrl: studentSubmissions.submittedFileUrl,
           submissionDate: studentSubmissions.submissionDate,
+          submittedGoogleForm: studentSubmissions.submittedGoogleForm,
+          submissionRemark: studentSubmissions.remarks,
+          submissionStatus: studentSubmissions.status,
           templateId: formTemplates.id,
           templateTitle: formTemplates.title,
           templateFileUrl: formTemplates.fileUrl,
+          templateFormUrl: formTemplates.formUrl,
+          templateFormId: formTemplates.formId,
+          templateType: formTemplates.type,
           templateCategory: formTemplates.category,
           templateUploadedAt: formTemplates.updatedAt,
         })
@@ -156,11 +204,17 @@ export const studentRoutes = new Hono()
               submissionId: s.submissionId,
               submittedFileUrl: s.submittedFileUrl,
               submissionDate: s.submissionDate,
+              submittedGoogleForm: s.submittedGoogleForm,
+              submissionRemark: s.submissionRemark,
+              submissionStatus: s.submissionStatus,
             }));
             return {
               templateId: tpl.id,
               title: tpl.title,
               fileUrl: tpl.fileUrl,
+              formId: tpl.formId,
+              formUrl: tpl.formUrl,
+              type: tpl.type,
               category: tpl.category,
               uploadedAt: tpl.updatedAt,
               submission: submissionList,
@@ -191,7 +245,7 @@ export const studentRoutes = new Hono()
   })
   .patch(
     '/:id/status',
-    requireRole(['admin']),
+    requireRole(['admin', 'coordinator']),
     zValidator('json', updateOJTStatusSchema),
     async (c) => {
       try {
@@ -220,6 +274,115 @@ export const studentRoutes = new Hono()
       }
     },
   )
+  .get('/student-current', requireRole(['student']), async (c) => {
+    try {
+      const userId = c.get('userId');
+
+      if (!userId) {
+        return c.json({ message: 'Unauthorized' }, 401);
+      }
+
+      const studentAlias = alias(users, 'student');
+      const coordinatorAlias = alias(users, 'coordinator');
+
+      const [ojt] = await db
+        .select()
+        .from(ojtApplication)
+        .where(eq(ojtApplication.studentId, userId))
+        .innerJoin(studentAlias, eq(ojtApplication.studentId, studentAlias.id))
+        .leftJoin(
+          coordinatorAlias,
+          eq(ojtApplication.coordinatorId, coordinatorAlias.id),
+        )
+        .leftJoin(companies, eq(ojtApplication.companyId, companies.id))
+        .leftJoin(classes, eq(ojtApplication.classId, classes.id));
+
+      const templates = await db.select().from(formTemplates);
+
+      const submissions = await db
+        .select({
+          submissionId: studentSubmissions.id,
+          ojtId: studentSubmissions.ojtId,
+          templateId: studentSubmissions.templateId,
+          submittedFileUrl: studentSubmissions.submittedFileUrl,
+          submittedGoogleForm: studentSubmissions.submittedGoogleForm,
+          submissionDate: studentSubmissions.submissionDate,
+          submissionRemark: studentSubmissions.remarks ?? null,
+          submissionStatus: studentSubmissions.status,
+        })
+        .from(studentSubmissions)
+        .where(eq(studentSubmissions.ojtId, ojt.ojt_application.id));
+
+      const submissionsByTemplate: Record<number, (typeof submissions)[0][]> =
+        {};
+      for (const sub of submissions) {
+        const arr = submissionsByTemplate[sub.templateId] ?? [];
+        arr.push(sub);
+        submissionsByTemplate[sub.templateId] = arr;
+      }
+
+      const templateList = templates.map((tpl) => {
+        const subs = submissionsByTemplate[tpl.id] ?? [];
+        return {
+          template: {
+            templateId: tpl.id,
+            type: tpl.type,
+            title: tpl.title,
+            fileUrl: tpl.fileUrl,
+            formId: tpl.formId,
+            formUrl: tpl.formUrl,
+            category: tpl.category,
+            updatedAt: tpl.updatedAt,
+          },
+          submissions: subs.map((s) => ({
+            submissionId: s.submissionId,
+            submissionOJTId: s.ojtId,
+            submittedFileUrl: s.submittedFileUrl,
+            submittedGoogleForm: s.submittedGoogleForm,
+            submissionDate: s.submissionDate,
+            submissionRemark: s.submissionRemark,
+            submissionStatus: s.submissionStatus,
+          })),
+        };
+      });
+
+      const groupedByCategory: Record<
+        'pre-ojt' | 'ojt' | 'post-ojt',
+        typeof templateList
+      > = {
+        'pre-ojt': [],
+        ojt: [],
+        'post-ojt': [],
+      };
+      for (const t of templateList) {
+        const category = t.template.category;
+        if (!groupedByCategory[category]) {
+          groupedByCategory[category] = [];
+        }
+        groupedByCategory[category].push(t);
+      }
+
+      const { password: studentPassword, ...student } = ojt.student;
+      const { ...coordinator } = ojt.coordinator;
+
+      return c.json({
+        coordinatorId: ojt.ojt_application.coordinatorId,
+        coordinator,
+        companyId: ojt.ojt_application.companyId,
+        ojtStatus: ojt.ojt_application.status,
+        supervisorEmail: ojt.ojt_application.supervisorEmail,
+        studentCoordinatorRequestId:
+          ojt.ojt_application.studentCoordinatorRequestId,
+        student,
+        class: ojt.classes,
+        company: ojt.companies,
+        ...groupedByCategory,
+      });
+    } catch (error) {
+      console.log(error);
+      return c.json({ message: 'Something went wrong' }, 500);
+    }
+  })
   .get('/:id', requireRole(['admin', 'coordinator']), async (c) => {
     try {
       const idParam = c.req.param('id');
@@ -236,7 +399,10 @@ export const studentRoutes = new Hono()
           ojtId: studentSubmissions.ojtId,
           templateId: studentSubmissions.templateId,
           submittedFileUrl: studentSubmissions.submittedFileUrl,
+          submittedGoogleForm: studentSubmissions.submittedGoogleForm,
           submissionDate: studentSubmissions.submissionDate,
+          submissionRemark: studentSubmissions.remarks ?? null,
+          submissionStatus: studentSubmissions.status,
         })
         .from(studentSubmissions)
         .where(eq(studentSubmissions.ojtId, id));
@@ -254,15 +420,22 @@ export const studentRoutes = new Hono()
         return {
           template: {
             templateId: tpl.id,
+            type: tpl.type,
             title: tpl.title,
             fileUrl: tpl.fileUrl,
+            formId: tpl.formId,
+            formUrl: tpl.formUrl,
             category: tpl.category,
             updatedAt: tpl.updatedAt,
           },
           submissions: subs.map((s) => ({
             submissionId: s.submissionId,
+            submissionOJTId: s.ojtId,
             submittedFileUrl: s.submittedFileUrl,
+            submittedGoogleForm: s.submittedGoogleForm,
             submissionDate: s.submissionDate,
+            submissionRemark: s.submissionRemark,
+            submissionStatus: s.submissionStatus,
           })),
         };
       });
@@ -288,4 +461,97 @@ export const studentRoutes = new Hono()
       console.error(error);
       return c.json({ message: 'Something went wrong' }, 500);
     }
-  });
+  })
+  .patch(
+    '/submission/:id/remark',
+    requireRole(['admin', 'coordinator']),
+    zValidator('json', updateOJTSubmissionRemarkSchema),
+    async (c) => {
+      try {
+        const idParam = c.req.param('id');
+        const id = Number(idParam);
+
+        if (isNaN(id)) {
+          return c.json({ message: 'Invalid submission id provided' }, 400);
+        }
+
+        const data = c.req.valid('json');
+
+        const [result] = await db
+          .update(studentSubmissions)
+          .set({ remarks: data.remark })
+          .where(eq(studentSubmissions.id, id));
+
+        if (result.affectedRows === 0) {
+          return c.json({ message: 'Submission not found' }, 404);
+        }
+
+        return c.json({ message: 'Submission remark updated successfully' });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .patch(
+    '/submission/:id/status',
+    requireRole(['admin', 'coordinator']),
+    zValidator('json', updateOJTSubmissionStatusSchema),
+    async (c) => {
+      try {
+        const idParam = c.req.param('id');
+        const id = Number(idParam);
+
+        if (isNaN(id)) {
+          return c.json({ message: 'Invalid submission id provided' }, 400);
+        }
+
+        const data = c.req.valid('json');
+
+        const [result] = await db
+          .update(studentSubmissions)
+          .set({ status: data.status })
+          .where(eq(studentSubmissions.id, id));
+
+        if (result.affectedRows === 0) {
+          return c.json({ message: 'Submission not found' }, 404);
+        }
+
+        return c.json({ message: 'Submission status updated successfully' });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .patch(
+    '/:id/class',
+    requireRole(['coordinator', 'admin']),
+    zValidator('json', updateOJTClassSchema),
+    async (c) => {
+      try {
+        const idParam = c.req.param('id');
+        const id = Number(idParam);
+
+        if (isNaN(id)) {
+          return c.json({ message: 'Invalid OJT id provided' }, 400);
+        }
+
+        const data = c.req.valid('json');
+
+        const [result] = await db
+          .update(ojtApplication)
+          .set({ classId: data.classId })
+          .where(eq(ojtApplication.id, id));
+
+        if (result.affectedRows === 0) {
+          return c.json({ message: 'OJT not found' }, 404);
+        }
+
+        return c.json({ message: 'Student OJT class updated successfully' });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  );

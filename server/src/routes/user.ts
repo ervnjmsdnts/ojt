@@ -11,6 +11,10 @@ const updateRoleSchema = z.object({
   role: z.enum(['coordinator', 'student', 'admin']),
 });
 
+const updateFullNameSchema = z.object({
+  fullName: z.string().min(1),
+});
+
 export const userRoutes = new Hono()
   .get('/', requireRole(['admin']), async (c) => {
     try {
@@ -45,6 +49,7 @@ export const userRoutes = new Hono()
         .select({
           id: users.id,
           srCode: users.srCode,
+          email: users.email,
           fullName: users.fullName,
           role: users.role,
           gender: users.gender,
@@ -115,6 +120,37 @@ export const userRoutes = new Hono()
         }
 
         return c.json({ message: 'User role updated successfully' });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .patch(
+    '/:id/name',
+    requireRole(['admin']),
+    zValidator('json', updateFullNameSchema),
+    async (c) => {
+      try {
+        const idParam = c.req.param('id');
+        const id = Number(idParam);
+
+        if (isNaN(id)) {
+          return c.json({ message: 'Invalid user id provided' }, 400);
+        }
+
+        const data = c.req.valid('json');
+
+        const [result] = await db
+          .update(users)
+          .set({ fullName: data.fullName })
+          .where(eq(users.id, id));
+
+        if (result.affectedRows === 0) {
+          return c.json({ message: 'User not found' }, 404);
+        }
+
+        return c.json({ message: 'User full name updated successfully' });
       } catch (error) {
         console.log(error);
         return c.json({ message: 'Something went wrong' }, 500);

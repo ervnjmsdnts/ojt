@@ -18,8 +18,8 @@ import { Input } from '@/components/ui/input';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { api, userQueryOptions } from '@/lib/api';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { api, getClasses, userQueryOptions } from '@/lib/api';
 import { z } from 'zod';
 import {
   Select,
@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ParsedFormValue } from 'hono/types';
 
 export const Route = createFileRoute('/register')({
   beforeLoad: async ({ context }) => {
@@ -44,6 +45,9 @@ export const Route = createFileRoute('/register')({
 
 const schema = z.object({
   srCode: z.string().min(1),
+  email: z.string().email().min(1),
+  classId: z.coerce.number(),
+  registrationForm: z.instanceof(File),
   password: z.string().min(1),
   fullName: z.string().min(1),
   gender: z.enum(['male', 'female']),
@@ -52,7 +56,17 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 async function register(data: Schema) {
-  const res = await api.auth.register.$post({ json: data });
+  const res = await api.auth.register.$post({
+    form: {
+      srCode: data.srCode,
+      email: data.email,
+      classId: data.classId as unknown as ParsedFormValue,
+      password: data.password,
+      fullName: data.fullName,
+      gender: data.gender,
+      registrationForm: data.registrationForm,
+    },
+  });
   if (!res.ok) {
     throw new Error('server error');
   }
@@ -64,6 +78,11 @@ function RouteComponent() {
   if (user) {
     return navigate({ to: '/dashboard' });
   }
+
+  const { isPending, data: classes } = useQuery({
+    queryKey: ['classes'],
+    queryFn: getClasses,
+  });
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
@@ -90,9 +109,21 @@ function RouteComponent() {
                 name='srCode'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SR-Code</FormLabel>
+                    <FormLabel>ID</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='email'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address</FormLabel>
+                    <FormControl>
+                      <Input type='email' {...field} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -140,6 +171,51 @@ function RouteComponent() {
                         <SelectItem value='female'>Female</SelectItem>
                       </SelectContent>
                     </Select>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='classId'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Class</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger disabled={isPending}>
+                          <SelectValue placeholder='Select a class' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {!isPending &&
+                          classes &&
+                          classes.map((c) => (
+                            <SelectItem key={c.id} value={c.id.toString()}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='registrationForm'
+                render={({ field: { value, onChange, ...fieldProps } }) => (
+                  <FormItem>
+                    <FormLabel>Registration Form</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...fieldProps}
+                        type='file'
+                        onChange={(e) =>
+                          onChange(e.target.files && e.target.files[0])
+                        }
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />

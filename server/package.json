@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.8",
+    "@hono/node-ws": "^1.1.1",
     "@hono/zod-validator": "^0.4.3",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.0",
@@ -13,8 +14,10 @@
     "dotenv-expand": "^12.0.1",
     "drizzle-orm": "^0.41.0",
     "drizzle-zod": "^0.7.1",
+    "googleapis": "^148.0.0",
     "mysql2": "^3.14.0",
     "nanoid": "^5.1.5",
+    "resend": "^4.2.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

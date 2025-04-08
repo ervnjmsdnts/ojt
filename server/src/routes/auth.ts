@@ -12,10 +12,21 @@ import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie';
+import { uploadFile } from '../lib/cloudinary';
 
 const loginSchema = z.object({
   srCode: z.string().min(1),
   password: z.string().min(1),
+});
+
+const registerSchema = z.object({
+  srCode: z.string().min(1),
+  email: z.string().email().min(1),
+  classId: z.coerce.number(),
+  registrationForm: z.instanceof(File),
+  password: z.string().min(1),
+  fullName: z.string().min(1),
+  gender: z.enum(['male', 'female']),
 });
 
 export const authRoute = new Hono()
@@ -56,9 +67,9 @@ export const authRoute = new Hono()
       return c.json({ message: 'Something went wrong' }, 500);
     }
   })
-  .post('/register', zValidator('json', insertUserSchema), async (c) => {
+  .post('/register', zValidator('form', registerSchema), async (c) => {
     try {
-      const user = c.req.valid('json');
+      const { classId, registrationForm, ...user } = c.req.valid('form');
 
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(user.password, salt);
@@ -70,7 +81,13 @@ export const authRoute = new Hono()
       await db.transaction(async (tx) => {
         const [result] = await tx.insert(users).values(validateUser);
 
-        await tx.insert(ojtApplication).values({ studentId: result.insertId });
+        const { url } = await uploadFile(registrationForm);
+
+        await tx.insert(ojtApplication).values({
+          studentId: result.insertId,
+          classId,
+          registrationFormUrl: url,
+        });
       });
 
       return c.json({ message: 'User created' }, 201);

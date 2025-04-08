@@ -1,9 +1,9 @@
+import DoubleClickTooltip from '@/components/double-click-tooltip';
 import { EditableTableCell } from '@/components/editable-table-cell';
 import PageHeaderText from '@/components/page-header-text';
 import Pagination from '@/components/pagination';
 import RoleBadge from '@/components/role-badge';
 import TableRowSkeleton from '@/components/table-row-skeleton';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -23,14 +23,17 @@ import {
 } from '@/components/ui/table';
 import AddUserDialog from '@/components/users/add-user-dialog';
 import usePagination from '@/hooks/use-pagination';
-import { getUsers, UpdateRole, updateUserRole } from '@/lib/api';
+import {
+  getUsers,
+  UpdateRole,
+  updateUserFullName,
+  updateUserRole,
+} from '@/lib/api';
 import { Role } from '@/lib/types';
 import { toUpperCase } from '@/lib/utils';
-import { User } from '@server/sharedTypes';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Archive } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/_authenticated/users')({
@@ -48,10 +51,15 @@ function RouteComponent() {
   });
   const queryClient = useQueryClient();
   const [editingRow, setEditingRow] = useState<number | null>(null);
+  const [editingRowName, setEditingRowName] = useState<number | null>(null);
   const [filterName, setFilterName] = useState('');
   const [filterRole, setFilterRole] = useState<Role | 'any'>('any');
+  const [updateName, setUpdateName] = useState('');
 
   const { mutate } = useMutation({ mutationFn: updateUserRole });
+  const updateUserFullNameMutation = useMutation({
+    mutationFn: updateUserFullName,
+  });
 
   const onUpdateRole = (data: UpdateRole) => {
     mutate(data, {
@@ -62,6 +70,27 @@ function RouteComponent() {
       },
     });
   };
+
+  const onUpdateName = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>, data: { userId: number }) => {
+      if (e.key === 'Enter') {
+        if (!updateName) {
+          return toast.error('Name cannot be empty');
+        }
+        updateUserFullNameMutation.mutate(
+          { userId: data.userId, name: updateName },
+          {
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: ['users'] });
+              setEditingRowName(null);
+              toast.success('User full name updated successfully');
+            },
+          },
+        );
+      }
+    },
+    [updateName],
+  );
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
@@ -80,7 +109,7 @@ function RouteComponent() {
   if (error) return <p>Error</p>;
 
   const { currentItems, paginate, currentPage, totalPages } =
-    usePagination<User>(filteredUsers!);
+    usePagination(filteredUsers);
 
   return (
     <SidebarInset className='py-4 px-8 flex flex-col gap-4'>
@@ -114,10 +143,14 @@ function RouteComponent() {
             <TableHeader>
               <TableRow>
                 <TableHead>SR Code</TableHead>
-                <TableHead>Full Name</TableHead>
-                <TableHead>Role</TableHead>
+                <TableHead>
+                  <DoubleClickTooltip text='Full Name' />
+                </TableHead>
+                <TableHead>
+                  <DoubleClickTooltip text='Role' />
+                </TableHead>
                 <TableHead>Gender</TableHead>
-                <TableHead className='text-center'>Actions</TableHead>
+                {/* <TableHead className='text-center'>Actions</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -127,46 +160,68 @@ function RouteComponent() {
                 currentItems?.map((user, index) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.srCode}</TableCell>
-                    <TableCell>{user.fullName}</TableCell>
                     <EditableTableCell
-                      editing={editingRow === index}
+                      editing={editingRowName === index}
                       onToggleEditing={() =>
-                        setEditingRow(editingRow === index ? null : index)
+                        setEditingRowName(
+                          editingRowName === index ? null : index,
+                        )
                       }>
-                      {editingRow === index ? (
-                        <Select
-                          defaultValue={user.role}
-                          onValueChange={(value) =>
-                            onUpdateRole({
-                              role: value as Role,
-                              userId: user.id,
-                            })
-                          }>
-                          <SelectTrigger className='w-[120px]'>
-                            <SelectValue placeholder='Select role...' />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value='student' disabled>
-                              Student
-                            </SelectItem>
-                            <SelectItem value='coordinator'>
-                              Coordinator
-                            </SelectItem>
-                            <SelectItem value='admin'>Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      {editingRowName === index ? (
+                        <Input
+                          defaultValue={user.fullName}
+                          onChange={(e) => setUpdateName(e.target.value)}
+                          onKeyDown={(e) =>
+                            onUpdateName(e, { userId: user.id })
+                          }
+                          className='w-[200px]'
+                        />
                       ) : (
-                        <RoleBadge role={user.role} />
+                        user.fullName
                       )}
                     </EditableTableCell>
+                    {user.role === 'student' ? (
+                      <TableCell>
+                        <RoleBadge role='student' />
+                      </TableCell>
+                    ) : (
+                      <EditableTableCell
+                        editing={editingRow === index}
+                        onToggleEditing={() =>
+                          setEditingRow(editingRow === index ? null : index)
+                        }>
+                        {editingRow === index ? (
+                          <Select
+                            defaultValue={user.role}
+                            onValueChange={(value) =>
+                              onUpdateRole({
+                                role: value as Role,
+                                userId: user.id,
+                              })
+                            }>
+                            <SelectTrigger className='w-[120px]'>
+                              <SelectValue placeholder='Select role...' />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value='coordinator'>
+                                Coordinator
+                              </SelectItem>
+                              <SelectItem value='admin'>Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <RoleBadge role={user.role} />
+                        )}
+                      </EditableTableCell>
+                    )}
                     <TableCell>{toUpperCase(user.gender)}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <div className='flex justify-center'>
                         <Button variant='destructive' size='icon'>
                           <Archive />
                         </Button>
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))
               )}

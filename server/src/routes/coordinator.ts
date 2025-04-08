@@ -2,30 +2,48 @@ import { Hono } from 'hono';
 import { requireRole } from '../middlewares/role';
 import { db } from '../db';
 import {
+  classes,
+  companies,
+  departments,
   formTemplates,
   ojtApplication,
+  programs,
   studentSubmissions,
   users,
 } from '../db/schema';
 import { eq, inArray, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/mysql-core';
 
-export const coordinatorRoutes = new Hono().get(
-  '/ojt',
-  requireRole(['coordinator']),
-  async (c) => {
+export const coordinatorRoutes = new Hono()
+  .get('/ojt', requireRole(['coordinator']), async (c) => {
     try {
-      const coordinatorId = c.get('userId');
+      const userId = c.get('userId');
 
-      if (!coordinatorId) {
+      if (!userId) {
         return c.json({ message: 'Unauthorized' }, 401);
       }
 
+      const coordinatorAlias = alias(users, 'coordinator');
       const ojtApps = await db
         .select({
           id: ojtApplication.id,
           status: ojtApplication.status,
           studentId: ojtApplication.studentId,
           coordinatorId: ojtApplication.coordinatorId,
+          companyId: ojtApplication.companyId,
+          classId: ojtApplication.classId,
+          program: {
+            id: programs.id,
+            name: programs.name,
+          },
+          department: {
+            id: departments.id,
+            name: departments.name,
+          },
+          class: {
+            id: classes.id,
+            name: classes.name,
+          },
           student: {
             id: users.id,
             fullName: users.fullName,
@@ -33,14 +51,36 @@ export const coordinatorRoutes = new Hono().get(
             role: users.role,
             gender: users.gender,
           },
+          coordinator: {
+            id: coordinatorAlias.id,
+            fullName: coordinatorAlias.fullName,
+            srCode: coordinatorAlias.srCode,
+            role: coordinatorAlias.role,
+            gender: coordinatorAlias.gender,
+          },
+          company: {
+            id: companies.id,
+            name: companies.name,
+          },
         })
         .from(ojtApplication)
         .innerJoin(users, eq(ojtApplication.studentId, users.id))
-        .where(eq(ojtApplication.coordinatorId, coordinatorId));
+        .leftJoin(companies, eq(ojtApplication.companyId, companies.id))
+        .leftJoin(classes, eq(ojtApplication.classId, classes.id))
+        .leftJoin(
+          coordinatorAlias,
+          eq(ojtApplication.coordinatorId, coordinatorAlias.id),
+        )
+        .leftJoin(programs, eq(classes.programId, programs.id))
+        .leftJoin(departments, eq(classes.departmentId, departments.id))
+        .where(eq(ojtApplication.coordinatorId, userId))
+        .orderBy(sql`LOWER(${users.fullName})`);
 
       if (!ojtApps.length) {
         return c.json([]);
       }
+
+      const templates = await db.select().from(formTemplates);
 
       const ojtAppIds = ojtApps.map((app) => app.id);
 
@@ -50,13 +90,17 @@ export const coordinatorRoutes = new Hono().get(
           ojtId: studentSubmissions.ojtId,
           submittedFileUrl: studentSubmissions.submittedFileUrl,
           submissionDate: studentSubmissions.submissionDate,
-          template: {
-            templateId: formTemplates.id,
-            title: formTemplates.title,
-            fileUrl: formTemplates.fileUrl,
-            categoryId: formTemplates.category,
-            uploadedAt: formTemplates.updatedAt,
-          },
+          submittedGoogleForm: studentSubmissions.submittedGoogleForm,
+          submissionRemark: studentSubmissions.remarks,
+          submissionStatus: studentSubmissions.status,
+          templateId: formTemplates.id,
+          templateTitle: formTemplates.title,
+          templateFileUrl: formTemplates.fileUrl,
+          templateFormUrl: formTemplates.formUrl,
+          templateFormId: formTemplates.formId,
+          templateType: formTemplates.type,
+          templateCategory: formTemplates.category,
+          templateUploadedAt: formTemplates.updatedAt,
         })
         .from(studentSubmissions)
         .innerJoin(
@@ -65,23 +109,82 @@ export const coordinatorRoutes = new Hono().get(
         )
         .where(inArray(studentSubmissions.ojtId, ojtAppIds));
 
-      const submissionsByOjt: Record<number, typeof submissions> = {};
+      const submissionsByOjtAndTemplate: Record<
+        number,
+        Record<number, (typeof submissions)[0][]>
+      > = {};
+
       for (const sub of submissions) {
-        if (!submissionsByOjt[sub.ojtId]) {
-          submissionsByOjt[sub.ojtId] = [];
+        if (!submissionsByOjtAndTemplate[sub.ojtId]) {
+          submissionsByOjtAndTemplate[sub.ojtId] = {};
         }
-        submissionsByOjt[sub.ojtId].push(sub);
+
+        const arr =
+          submissionsByOjtAndTemplate[sub.ojtId][sub.templateId] || [];
+        arr.push(sub);
+
+        submissionsByOjtAndTemplate[sub.ojtId][sub.templateId] = arr;
       }
 
-      const result = ojtApps.map((app) => ({
-        ...app,
-        submissions: submissionsByOjt[app.id] || [],
-      }));
+      const result = ojtApps.map((app) => {
+        const templateList = templates.map((tpl) => {
+          const maybeSubmission =
+            submissionsByOjtAndTemplate[app.id]?.[tpl.id] ?? [];
+
+          if (maybeSubmission.length > 0) {
+            const submissionList = maybeSubmission.map((s) => ({
+              submissionId: s.submissionId,
+              submittedFileUrl: s.submittedFileUrl,
+              submissionDate: s.submissionDate,
+              submittedGoogleForm: s.submittedGoogleForm,
+              submissionRemark: s.submissionRemark,
+              submissionStatus: s.submissionStatus,
+            }));
+            return {
+              templateId: tpl.id,
+              title: tpl.title,
+              fileUrl: tpl.fileUrl,
+              formId: tpl.formId,
+              formUrl: tpl.formUrl,
+              type: tpl.type,
+              category: tpl.category,
+              uploadedAt: tpl.updatedAt,
+              submission: submissionList,
+            };
+          } else {
+            return {
+              templateId: tpl.id,
+              title: tpl.title,
+              fileUrl: tpl.fileUrl,
+              category: tpl.category,
+              uploadedAt: tpl.updatedAt,
+              submission: [],
+            };
+          }
+        });
+
+        return {
+          ...app,
+          templates: templateList,
+        };
+      });
+
+      return c.json(result);
+    } catch (error) {
+      console.log(error);
+      return c.json({ message: 'Something went wrong' }, 500);
+    }
+  })
+  .get('/', requireRole(['coordinator', 'admin', 'student']), async (c) => {
+    try {
+      const result = await db
+        .select({ id: users.id, email: users.email, fullName: users.fullName })
+        .from(users)
+        .where(eq(users.role, 'coordinator'));
 
       return c.json(result);
     } catch (error) {
       console.error(error);
       return c.json({ message: 'Something went wrong' }, 500);
     }
-  },
-);
+  });

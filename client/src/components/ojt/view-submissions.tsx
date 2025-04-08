@@ -13,7 +13,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { getSingleOJTAdmin } from '@/lib/api';
 import { useMemo, useState } from 'react';
-import SubmissionsTable from './submissions-table';
+import SubmissionsTableAdmin from './submissions-table-admin';
+import { TemplateSubmission } from '@/lib/types';
 
 export default function ViewSubmissions({ ojtId }: { ojtId: number }) {
   const [open, setOpen] = useState(false);
@@ -26,7 +27,11 @@ export default function ViewSubmissions({ ojtId }: { ojtId: number }) {
   const templatesAndSubmissions = useMemo(() => {
     if (isPending || !data) return {};
 
-    return { pre: data['pre-ojt'], ojt: data.ojt, post: data['post-ojt'] };
+    return {
+      pre: data['pre-ojt'] as TemplateSubmission[],
+      ojt: data.ojt as TemplateSubmission[],
+      post: data['post-ojt'] as TemplateSubmission[],
+    };
   }, [isPending, data]);
 
   return (
@@ -43,7 +48,7 @@ export default function ViewSubmissions({ ojtId }: { ojtId: number }) {
           <p>View Submissions</p>
         </TooltipContent>
       </Tooltip>
-      <DialogContent className='w-[80vw] max-h-[80vh] max-w-none flex flex-col overflow-y-auto h-full'>
+      <DialogContent className='w-[90vw] max-h-[80vh] max-w-none flex flex-col overflow-y-auto h-full'>
         <DialogHeader>
           <DialogTitle>Submissions</DialogTitle>
         </DialogHeader>
@@ -51,7 +56,7 @@ export default function ViewSubmissions({ ojtId }: { ojtId: number }) {
           <section className='flex-1 flex flex-col gap-2 min-h-0'>
             <h3 className='font-semibold'>Pre-OJT</h3>
             <div className='border rounded-lg flex-1 min-h-0 overflow-y-auto p-2'>
-              <SubmissionsTable
+              <SubmissionsTableAdmin
                 isPending={isPending}
                 data={templatesAndSubmissions.pre}
               />
@@ -60,7 +65,7 @@ export default function ViewSubmissions({ ojtId }: { ojtId: number }) {
           <section className='flex-1 flex flex-col gap-2 min-h-0'>
             <h3 className='font-semibold'>OJT</h3>
             <div className='border rounded-lg flex-1 min-h-0 overflow-y-auto p-2'>
-              <SubmissionsTable
+              <SubmissionsTableAdmin
                 isPending={isPending}
                 data={templatesAndSubmissions.ojt}
               />
@@ -69,7 +74,7 @@ export default function ViewSubmissions({ ojtId }: { ojtId: number }) {
           <section className='flex-1 flex flex-col gap-2 min-h-0'>
             <h3 className='font-semibold'>Post-OJT</h3>
             <div className='border rounded-lg flex-1 min-h-0 overflow-y-auto p-2'>
-              <SubmissionsTable
+              <SubmissionsTableAdmin
                 isPending={isPending}
                 data={templatesAndSubmissions.post}
               />

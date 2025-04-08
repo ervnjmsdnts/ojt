@@ -27,6 +27,14 @@ const badgeVariants = cva(
         ojt: 'border-transparent bg-red-400 text-white hover:bg-red-400/80',
         completed:
           'border-transparent bg-green-400 text-white hover:bg-green-400/80',
+        approved:
+          'border-transparent bg-green-400 text-white hover:bg-green-400/80',
+        resubmit:
+          'border-transparent bg-red-400 text-white hover:bg-red-400/80',
+        rejected:
+          'border-transparent bg-red-400 text-white hover:bg-red-400/80',
+        pending:
+          'border-transparent bg-yellow-400 text-white hover:bg-yellow-400/80',
       },
     },
     defaultVariants: {

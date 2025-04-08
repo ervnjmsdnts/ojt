@@ -1,8 +1,10 @@
 import CategoryBadge from '@/components/category-badge';
+import DoubleClickTooltip from '@/components/double-click-tooltip';
 import { EditableTableCell } from '@/components/editable-table-cell';
 import PageHeaderText from '@/components/page-header-text';
 import Pagination from '@/components/pagination';
 import TableRowSkeleton from '@/components/table-row-skeleton';
+import AddFormDialog from '@/components/templates/add-form-dialog';
 import AddTemplateDialog from '@/components/templates/add-template-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,10 +38,11 @@ import {
   updateTemplateTitle,
 } from '@/lib/api';
 import { OJTCategory } from '@/lib/types';
+import { cn, toUpperCase } from '@/lib/utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { format } from 'date-fns';
-import { Archive, File, Loader2 } from 'lucide-react';
+import { File, Loader2 } from 'lucide-react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -162,7 +165,7 @@ function RouteComponent() {
   if (error) return <p>Error</p>;
   return (
     <SidebarInset className='py-4 px-8 flex flex-col gap-4'>
-      <PageHeaderText>Templates</PageHeaderText>
+      <PageHeaderText>Forms & Templates</PageHeaderText>
       <div className='flex w-full items-center justify-between'>
         <div className='flex items-center gap-3'>
           <Input
@@ -186,18 +189,26 @@ function RouteComponent() {
             </SelectContent>
           </Select>
         </div>
-        <AddTemplateDialog />
+        <div className='flex items-center gap-1'>
+          <AddFormDialog />
+          <AddTemplateDialog />
+        </div>
       </div>
       <div className='flex flex-1 flex-col gap-4'>
         <div className='border h-full rounded-lg'>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Category</TableHead>
+                <TableHead>
+                  <DoubleClickTooltip text='Title' />
+                </TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>
+                  <DoubleClickTooltip text='Category' />
+                </TableHead>
                 <TableHead>Uploaded by</TableHead>
                 <TableHead>Updated At</TableHead>
-                <TableHead className='text-center'>Actions</TableHead>
+                {/* <TableHead className='text-center'>Actions</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -214,7 +225,11 @@ function RouteComponent() {
                         )
                       }>
                       {editingRowTitle === index ? (
-                        <div className='flex items-center w-[250px] gap-1'>
+                        <div
+                          className={cn(
+                            'flex items-center w-[250px] gap-1',
+                            template.type === 'form' && 'flex-col items-start',
+                          )}>
                           <Tooltip>
                             <TooltipTrigger>
                               <Input
@@ -228,36 +243,75 @@ function RouteComponent() {
                             </TooltipTrigger>
                             <TooltipContent>Change Title</TooltipContent>
                           </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                disabled={updateFileMutation.isPending}
-                                onClick={handleFileSelect}
-                                size='icon'>
-                                {updateFileMutation.isPending ? (
-                                  <Loader2 className='w-4 h-4 animate-spin' />
-                                ) : (
-                                  <File />
-                                )}
-                                <Input
-                                  type='file'
-                                  ref={fileInputRef}
-                                  className='hidden'
-                                  onChange={(e) =>
-                                    handleFileChange(e, template.id)
-                                  }
-                                />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Change File</TooltipContent>
-                          </Tooltip>
+                          {template.type === 'template' ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  disabled={updateFileMutation.isPending}
+                                  onClick={handleFileSelect}
+                                  size='icon'>
+                                  {updateFileMutation.isPending ? (
+                                    <Loader2 className='w-4 h-4 animate-spin' />
+                                  ) : (
+                                    <File />
+                                  )}
+                                  <Input
+                                    type='file'
+                                    ref={fileInputRef}
+                                    className='hidden'
+                                    onChange={(e) =>
+                                      handleFileChange(e, template.id)
+                                    }
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Change File</TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Input
+                                    defaultValue={template.formId!}
+                                    // onChange={(e) => setUpdateTitle(e.target.value)}
+                                    // onKeyDown={(e) =>
+                                    //   onUpdateTitle(e, { templateId: template.id })
+                                    // }
+                                    className='w-[200px]'
+                                  />
+                                </TooltipTrigger>
+                                <TooltipContent>Change Form ID</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Input
+                                    defaultValue={template.formUrl!}
+                                    // onChange={(e) => setUpdateTitle(e.target.value)}
+                                    // onKeyDown={(e) =>
+                                    //   onUpdateTitle(e, { templateId: template.id })
+                                    // }
+                                    className='w-[200px]'
+                                  />
+                                </TooltipTrigger>
+                                <TooltipContent>Change Form URL</TooltipContent>
+                              </Tooltip>
+                            </>
+                          )}
                         </div>
                       ) : (
                         <Button variant='link' className='p-0' asChild>
-                          <Link to={template.fileUrl}>{template.title}</Link>
+                          <Link
+                            to={
+                              template.type === 'template'
+                                ? template.fileUrl!
+                                : template.formUrl!
+                            }>
+                            {template.title}
+                          </Link>
                         </Button>
                       )}
                     </EditableTableCell>
+                    <TableCell>{toUpperCase(template.type)}</TableCell>
                     <EditableTableCell
                       editing={editingRowCategory === index}
                       onToggleEditing={() =>
@@ -289,13 +343,13 @@ function RouteComponent() {
                     </EditableTableCell>
                     <TableCell>{template.uploadedBy?.fullName}</TableCell>
                     <TableCell>{format(template.updatedAt!, 'PPp')}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <div className='flex justify-center'>
                         <Button variant='destructive' size='icon'>
                           <Archive />
                         </Button>
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))
               )}

@@ -16,6 +16,11 @@ const updateCompanyNameSchema = z.object({
   name: z.string().min(1),
 });
 
+const assignCompanyToOJTSchema = z.object({
+  companyId: z.number().min(1),
+  supervisorEmail: z.string().email().min(1),
+});
+
 export const companyRoutes = new Hono()
   .post(
     '/',
@@ -117,6 +122,44 @@ export const companyRoutes = new Hono()
         }
 
         return c.json({ message: 'Company name updated successfully' });
+      } catch (error) {
+        console.error(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .post(
+    '/assign',
+    requireRole(['student']),
+    zValidator('json', assignCompanyToOJTSchema),
+    async (c) => {
+      try {
+        const userId = c.get('userId');
+
+        if (!userId) {
+          return c.json({ message: 'Unauthorized' }, 401);
+        }
+
+        const [ojt] = await db
+          .select({ id: ojtApplication.id })
+          .from(ojtApplication)
+          .where(eq(ojtApplication.studentId, userId));
+
+        if (!ojt) {
+          return c.json({ message: 'OJT not found' }, 404);
+        }
+
+        const data = c.req.valid('json');
+
+        await db
+          .update(ojtApplication)
+          .set({
+            companyId: data.companyId,
+            supervisorEmail: data.supervisorEmail,
+          })
+          .where(eq(ojtApplication.id, ojt.id));
+
+        return c.json({ message: 'Company assigned' });
       } catch (error) {
         console.error(error);
         return c.json({ message: 'Something went wrong' }, 500);

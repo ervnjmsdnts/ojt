@@ -9,7 +9,7 @@ import { zValidator } from '@hono/zod-validator';
 const createGlobalNotificationSchema = z.object({ message: z.string().min(1) });
 const createStudentNotificationSchema = z.object({
   message: z.string().min(1),
-  targetStudentId: z.number().min(1),
+  targetStudentId: z.number().min(1), // Update to include multiple students
 });
 
 export const notificationRoutes = new Hono()
@@ -38,17 +38,17 @@ export const notificationRoutes = new Hono()
             throw new Error('Failed to create notification');
           }
 
-          const students = await tx
-            .select({ id: users.id })
-            .from(users)
-            .where(eq(users.role, 'student'));
+          // const students = await tx
+          //   .select({ id: users.id })
+          //   .from(users)
+          //   .where(eq(users.role, 'student'));
 
-          const joinRecords = students.map((student) => ({
-            notificationId: globalNotification.id,
-            studentId: student.id,
-          }));
+          // const joinRecords = students.map((student) => ({
+          //   notificationId: globalNotification.id,
+          //   studentId: student.id,
+          // }));
 
-          await db.insert(notificationRecipients).values(joinRecords);
+          // await db.insert(notificationRecipients).values(joinRecords);
         });
 
         return c.json(

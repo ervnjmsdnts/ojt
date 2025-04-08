@@ -15,7 +15,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,11 +25,16 @@ import { api, userQueryOptions } from '@/lib/api';
 export const Route = createFileRoute('/')({
   beforeLoad: async ({ context }) => {
     const queryClient = context.queryClient;
+    let user = null;
+
     try {
-      const data = await queryClient.fetchQuery(userQueryOptions);
-      return { user: data };
+      user = await queryClient.fetchQuery(userQueryOptions);
     } catch (error) {
-      return { user: null };
+      user = null;
+    }
+
+    if (user) {
+      throw redirect({ to: '/dashboard', throw: true });
     }
   },
   component: Index,
@@ -54,12 +59,7 @@ async function login(data: Schema) {
 }
 
 function Index() {
-  const { user } = Route.useRouteContext();
   const navigate = useNavigate();
-  if (user) {
-    return navigate({ to: '/dashboard' });
-  }
-
   const form = useForm<Schema>({ resolver: zodResolver(loginSchema) });
 
   const { mutate } = useMutation({ mutationFn: login });
@@ -88,7 +88,7 @@ function Index() {
                 name='srCode'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SR-Code</FormLabel>
+                    <FormLabel>ID</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
