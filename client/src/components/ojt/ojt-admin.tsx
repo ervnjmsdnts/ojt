@@ -1,7 +1,6 @@
 import CategoryBadge from '@/components/category-badge';
 import DoubleClickTooltip from '@/components/double-click-tooltip';
 import { EditableTableCell } from '@/components/editable-table-cell';
-import ViewSubmissions from '@/components/ojt/view-submissions';
 import PageHeaderText from '@/components/page-header-text';
 import Pagination from '@/components/pagination';
 import TableRowSkeleton from '@/components/table-row-skeleton';
@@ -31,8 +30,11 @@ import {
 } from '@/lib/api';
 import { OJTStatus } from '@/lib/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { View } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { Button } from '../ui/button';
 
 export default function OJTAdmin({
   role,
@@ -98,7 +100,7 @@ export default function OJTAdmin({
 
   return (
     <SidebarInset className='py-4 px-8 flex flex-col gap-4'>
-      <PageHeaderText>OJT Requirements</PageHeaderText>
+      <PageHeaderText>OJTs</PageHeaderText>
       <div className='flex w-full items-center justify-between'>
         <div className='flex items-center gap-3'>
           <Input
@@ -188,7 +190,14 @@ export default function OJTAdmin({
                       {ojt?.company ? ojt.company.name : 'Not assigned yet'}
                     </TableCell>
                     <TableCell className='grid place-items-center'>
-                      <ViewSubmissions ojtId={ojt.id} />
+                      <Button size='icon' asChild>
+                        <Link
+                          to='/ojt/$id'
+                          params={{ id: ojt.id.toString() }}
+                          className='grid place-items-center'>
+                          <View />
+                        </Link>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

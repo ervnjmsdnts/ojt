@@ -21,6 +21,8 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { api, userQueryOptions } from '@/lib/api';
+import { toast } from 'sonner';
+import BSULogo from '@/assets/bsu-logo.png';
 
 export const Route = createFileRoute('/')({
   beforeLoad: async ({ context }) => {
@@ -66,9 +68,11 @@ function Index() {
 
   const onSubmit = async (data: Schema) => {
     mutate(data, {
-      onSuccess: () => window.location.reload(),
+      onSuccess: () => {
+        window.location.reload();
+      },
       onError: (error) => {
-        console.log(error.message);
+        toast.error(error.message);
       },
     });
   };
@@ -77,7 +81,14 @@ function Index() {
     <div className='grid place-items-center p-2 h-screen'>
       <Card className='max-w-md w-full'>
         <CardHeader>
-          <CardTitle className='text-xl'>Login</CardTitle>
+          <div className='flex flex-col justify-center items-center gap-2'>
+            <img src={BSULogo} alt='BSU Logo' className='w-24' />
+            <div className='flex flex-col items-center gap-1'>
+              <p className='font-semibold text-lg'>Batangas State University</p>
+              <p className='text-sm'>Student Internship Portal</p>
+            </div>
+          </div>
+          <CardTitle className='text-xl pt-4'>Login</CardTitle>
           <CardDescription>Enter your credentials</CardDescription>
         </CardHeader>
         <Form {...form}>

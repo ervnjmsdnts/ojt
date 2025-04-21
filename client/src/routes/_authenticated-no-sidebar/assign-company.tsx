@@ -57,6 +57,10 @@ export const Route = createFileRoute(
 const schema = z.object({
   companyId: z.coerce.number(),
   supervisorEmail: z.string().email(),
+  supervisorName: z.string().min(1),
+  supervisorContactNumber: z.string().min(1),
+  supervisorAddress: z.string().min(1),
+  totalOJTHours: z.coerce.number(),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -127,20 +131,69 @@ function RouteComponent() {
               />
               <FormField
                 control={form.control}
-                name='supervisorEmail'
+                name='totalOJTHours'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Supervisor Email Address</FormLabel>
+                    <FormLabel>Total OJT Hours</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input type='number' {...field} />
                     </FormControl>
-                    <FormDescription>
-                      You can change the email address later on your profile
-                      page
-                    </FormDescription>
                   </FormItem>
                 )}
               />
+              <div>
+                <h3 className='text-lg font-semibold pt-4 pb-2'>
+                  Supervisor Information
+                </h3>
+                <FormField
+                  control={form.control}
+                  name='supervisorEmail'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='supervisorName'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='supervisorContactNumber'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Number</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='supervisorAddress'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
             <CardFooter className='justify-end'>
               <Button disabled={isPending || assignCompanyMutation.isPending}>

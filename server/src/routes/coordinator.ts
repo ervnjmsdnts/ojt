@@ -90,15 +90,13 @@ export const coordinatorRoutes = new Hono()
           ojtId: studentSubmissions.ojtId,
           submittedFileUrl: studentSubmissions.submittedFileUrl,
           submissionDate: studentSubmissions.submissionDate,
-          submittedGoogleForm: studentSubmissions.submittedGoogleForm,
           submissionRemark: studentSubmissions.remarks,
           submissionStatus: studentSubmissions.status,
+          supervisorFeedbackResponseId:
+            studentSubmissions.supervisorFeedbackResponseId,
           templateId: formTemplates.id,
           templateTitle: formTemplates.title,
           templateFileUrl: formTemplates.fileUrl,
-          templateFormUrl: formTemplates.formUrl,
-          templateFormId: formTemplates.formId,
-          templateType: formTemplates.type,
           templateCategory: formTemplates.category,
           templateUploadedAt: formTemplates.updatedAt,
         })
@@ -134,9 +132,9 @@ export const coordinatorRoutes = new Hono()
           if (maybeSubmission.length > 0) {
             const submissionList = maybeSubmission.map((s) => ({
               submissionId: s.submissionId,
+              supervisorFeedbackResponseId: s.supervisorFeedbackResponseId,
               submittedFileUrl: s.submittedFileUrl,
               submissionDate: s.submissionDate,
-              submittedGoogleForm: s.submittedGoogleForm,
               submissionRemark: s.submissionRemark,
               submissionStatus: s.submissionStatus,
             }));
@@ -144,9 +142,6 @@ export const coordinatorRoutes = new Hono()
               templateId: tpl.id,
               title: tpl.title,
               fileUrl: tpl.fileUrl,
-              formId: tpl.formId,
-              formUrl: tpl.formUrl,
-              type: tpl.type,
               category: tpl.category,
               uploadedAt: tpl.updatedAt,
               submission: submissionList,

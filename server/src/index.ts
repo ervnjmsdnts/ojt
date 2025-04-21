@@ -1,7 +1,7 @@
 import { serve } from '@hono/node-server';
-import app, { injectWS } from './app';
+import app from './app';
 
-const server = serve(
+serve(
   {
     fetch: app.fetch,
     port: 3000,
@@ -10,4 +10,3 @@ const server = serve(
     console.log(`Server is running on http://localhost:${info.port}`);
   },
 );
-injectWS(server);

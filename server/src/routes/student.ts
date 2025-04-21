@@ -39,6 +39,21 @@ const updateOJTClassSchema = z.object({
   classId: z.coerce.number().min(1),
 });
 
+const updatePersonalInfoSchema = z.object({
+  fullName: z.string().min(1),
+  gender: z.enum(['male', 'female']),
+  yearLevel: z.string().min(1),
+  semester: z.string().min(1),
+  totalOJTHours: z.number().min(1),
+});
+
+const updateSupervisorInfoSchema = z.object({
+  supervisorName: z.string().min(1),
+  supervisorEmail: z.string().email(),
+  supervisorContactNumber: z.string().optional(),
+  supervisorAddress: z.string().optional(),
+});
+
 export const studentRoutes = new Hono()
   .post(
     '/submission',
@@ -158,15 +173,14 @@ export const studentRoutes = new Hono()
           ojtId: studentSubmissions.ojtId,
           submittedFileUrl: studentSubmissions.submittedFileUrl,
           submissionDate: studentSubmissions.submissionDate,
-          submittedGoogleForm: studentSubmissions.submittedGoogleForm,
+          supervisorFeedbackResponseId:
+            studentSubmissions.supervisorFeedbackResponseId,
+          appraisalResponseId: studentSubmissions.appraisalResponseId,
           submissionRemark: studentSubmissions.remarks,
           submissionStatus: studentSubmissions.status,
           templateId: formTemplates.id,
           templateTitle: formTemplates.title,
           templateFileUrl: formTemplates.fileUrl,
-          templateFormUrl: formTemplates.formUrl,
-          templateFormId: formTemplates.formId,
-          templateType: formTemplates.type,
           templateCategory: formTemplates.category,
           templateUploadedAt: formTemplates.updatedAt,
         })
@@ -204,17 +218,15 @@ export const studentRoutes = new Hono()
               submissionId: s.submissionId,
               submittedFileUrl: s.submittedFileUrl,
               submissionDate: s.submissionDate,
-              submittedGoogleForm: s.submittedGoogleForm,
               submissionRemark: s.submissionRemark,
               submissionStatus: s.submissionStatus,
+              supervisorFeedbackResponseId: s.supervisorFeedbackResponseId,
+              appraisalResponseId: s.appraisalResponseId,
             }));
             return {
               templateId: tpl.id,
               title: tpl.title,
               fileUrl: tpl.fileUrl,
-              formId: tpl.formId,
-              formUrl: tpl.formUrl,
-              type: tpl.type,
               category: tpl.category,
               uploadedAt: tpl.updatedAt,
               submission: submissionList,
@@ -295,7 +307,9 @@ export const studentRoutes = new Hono()
           eq(ojtApplication.coordinatorId, coordinatorAlias.id),
         )
         .leftJoin(companies, eq(ojtApplication.companyId, companies.id))
-        .leftJoin(classes, eq(ojtApplication.classId, classes.id));
+        .leftJoin(classes, eq(ojtApplication.classId, classes.id))
+        .leftJoin(programs, eq(classes.programId, programs.id))
+        .leftJoin(departments, eq(classes.departmentId, departments.id));
 
       const templates = await db.select().from(formTemplates);
 
@@ -305,8 +319,10 @@ export const studentRoutes = new Hono()
           ojtId: studentSubmissions.ojtId,
           templateId: studentSubmissions.templateId,
           submittedFileUrl: studentSubmissions.submittedFileUrl,
-          submittedGoogleForm: studentSubmissions.submittedGoogleForm,
           submissionDate: studentSubmissions.submissionDate,
+          supervisorFeedbackResponseId:
+            studentSubmissions.supervisorFeedbackResponseId,
+          appraisalResponseId: studentSubmissions.appraisalResponseId,
           submissionRemark: studentSubmissions.remarks ?? null,
           submissionStatus: studentSubmissions.status,
         })
@@ -326,11 +342,10 @@ export const studentRoutes = new Hono()
         return {
           template: {
             templateId: tpl.id,
-            type: tpl.type,
+            isEmailToSupervisor: tpl.isEmailToSupervisor,
+            canStudentView: tpl.canStudentView,
             title: tpl.title,
             fileUrl: tpl.fileUrl,
-            formId: tpl.formId,
-            formUrl: tpl.formUrl,
             category: tpl.category,
             updatedAt: tpl.updatedAt,
           },
@@ -338,10 +353,11 @@ export const studentRoutes = new Hono()
             submissionId: s.submissionId,
             submissionOJTId: s.ojtId,
             submittedFileUrl: s.submittedFileUrl,
-            submittedGoogleForm: s.submittedGoogleForm,
             submissionDate: s.submissionDate,
+            supervisorFeedbackResponseId: s.supervisorFeedbackResponseId,
             submissionRemark: s.submissionRemark,
             submissionStatus: s.submissionStatus,
+            appraisalResponseId: s.appraisalResponseId,
           })),
         };
       });
@@ -363,18 +379,25 @@ export const studentRoutes = new Hono()
       }
 
       const { password: studentPassword, ...student } = ojt.student;
-      const { ...coordinator } = ojt.coordinator;
 
       return c.json({
         coordinatorId: ojt.ojt_application.coordinatorId,
-        coordinator,
+        coordinator: ojt.coordinator ?? null,
         companyId: ojt.ojt_application.companyId,
         ojtStatus: ojt.ojt_application.status,
         supervisorEmail: ojt.ojt_application.supervisorEmail,
+        supervisorName: ojt.ojt_application.supervisorName,
+        supervisorContactNumber: ojt.ojt_application.supervisorContactNumber,
+        totalOJTHours: ojt.ojt_application.totalOJTHours,
+        yearLevel: ojt.ojt_application.yearLevel,
+        semester: ojt.ojt_application.semester,
+        supervisorAddress: ojt.ojt_application.supervisorAddress,
         studentCoordinatorRequestId:
           ojt.ojt_application.studentCoordinatorRequestId,
         student,
         class: ojt.classes,
+        program: ojt.programs,
+        department: ojt.departments,
         company: ojt.companies,
         ...groupedByCategory,
       });
@@ -391,6 +414,15 @@ export const studentRoutes = new Hono()
         return c.json({ message: 'Invalid OJT application id' }, 400);
       }
 
+      const studentAlias = alias(users, 'student');
+
+      const [ojt] = await db
+        .select()
+        .from(ojtApplication)
+        .where(eq(ojtApplication.id, id))
+        .innerJoin(studentAlias, eq(ojtApplication.studentId, studentAlias.id))
+        .leftJoin(classes, eq(ojtApplication.classId, classes.id));
+
       const templates = await db.select().from(formTemplates);
 
       const submissions = await db
@@ -399,8 +431,10 @@ export const studentRoutes = new Hono()
           ojtId: studentSubmissions.ojtId,
           templateId: studentSubmissions.templateId,
           submittedFileUrl: studentSubmissions.submittedFileUrl,
-          submittedGoogleForm: studentSubmissions.submittedGoogleForm,
           submissionDate: studentSubmissions.submissionDate,
+          supervisorFeedbackResponseId:
+            studentSubmissions.supervisorFeedbackResponseId,
+          appraisalResponseId: studentSubmissions.appraisalResponseId,
           submissionRemark: studentSubmissions.remarks ?? null,
           submissionStatus: studentSubmissions.status,
         })
@@ -420,11 +454,8 @@ export const studentRoutes = new Hono()
         return {
           template: {
             templateId: tpl.id,
-            type: tpl.type,
             title: tpl.title,
             fileUrl: tpl.fileUrl,
-            formId: tpl.formId,
-            formUrl: tpl.formUrl,
             category: tpl.category,
             updatedAt: tpl.updatedAt,
           },
@@ -432,10 +463,11 @@ export const studentRoutes = new Hono()
             submissionId: s.submissionId,
             submissionOJTId: s.ojtId,
             submittedFileUrl: s.submittedFileUrl,
-            submittedGoogleForm: s.submittedGoogleForm,
             submissionDate: s.submissionDate,
             submissionRemark: s.submissionRemark,
             submissionStatus: s.submissionStatus,
+            supervisorFeedbackResponseId: s.supervisorFeedbackResponseId,
+            appraisalResponseId: s.appraisalResponseId,
           })),
         };
       });
@@ -456,7 +488,13 @@ export const studentRoutes = new Hono()
         groupedByCategory[category].push(t);
       }
 
-      return c.json(groupedByCategory);
+      const payload = {
+        studentName: ojt.student.fullName,
+        className: ojt?.classes?.name,
+        ...groupedByCategory,
+      };
+
+      return c.json(payload);
     } catch (error) {
       console.error(error);
       return c.json({ message: 'Something went wrong' }, 500);
@@ -549,6 +587,73 @@ export const studentRoutes = new Hono()
         }
 
         return c.json({ message: 'Student OJT class updated successfully' });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .patch(
+    '/personal-info',
+    requireRole(['student']),
+    zValidator('json', updatePersonalInfoSchema),
+    async (c) => {
+      try {
+        const userId = c.get('userId');
+
+        if (!userId) {
+          return c.json({ message: 'Unauthorized' }, 401);
+        }
+
+        const data = c.req.valid('json');
+
+        const userData = {
+          fullName: data.fullName,
+          gender: data.gender,
+        };
+
+        const ojtData = {
+          yearLevel: data.yearLevel,
+          semester: data.semester,
+          totalOJTHours: data.totalOJTHours,
+        };
+
+        await db.transaction(async (tx) => {
+          await tx.update(users).set(userData).where(eq(users.id, userId));
+
+          await tx
+            .update(ojtApplication)
+            .set(ojtData)
+            .where(eq(ojtApplication.studentId, userId));
+        });
+
+        return c.json({ message: 'Personal info updated successfully' });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .patch(
+    '/supervisor-info',
+    requireRole(['student']),
+    zValidator('json', updateSupervisorInfoSchema),
+    async (c) => {
+      try {
+        const userId = c.get('userId');
+
+        if (!userId) {
+          return c.json({ message: 'Unauthorized' }, 401);
+        }
+
+        const data = c.req.valid('json');
+
+        await db
+          .update(ojtApplication)
+          .set(data)
+          .where(eq(ojtApplication.studentId, userId));
+
+        return c.json({ message: 'Supervisor info updated successfully' });
       } catch (error) {
         console.log(error);
         return c.json({ message: 'Something went wrong' }, 500);

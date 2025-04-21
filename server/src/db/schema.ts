@@ -14,6 +14,7 @@ export const users = table('users', {
     .notNull()
     .default('student'),
   gender: t.mysqlEnum('gender', ['male', 'female']).notNull(),
+  profilePictureUrl: t.text('profile_picture_url'),
   createdAt: t
     .bigint('created_at', { mode: 'number' })
     .default(sql`(UNIX_TIMESTAMP() * 1000)`),
@@ -38,6 +39,8 @@ export const sessions = table('sessions', {
 export const companies = table('companies', {
   id: t.int('id').primaryKey().autoincrement(),
   name: t.varchar('name', { length: 255 }).notNull(),
+  address: t.text('address'),
+  memorandumUrl: t.text('memorandum_url'),
   createdAt: t
     .bigint('created_at', { mode: 'number' })
     .default(sql`(UNIX_TIMESTAMP() * 1000)`),
@@ -170,7 +173,14 @@ export const ojtApplication = table('ojt_application', {
     onUpdate: 'cascade',
   }),
   totalOJTHours: t.int('total_ojt_hours'),
+  yearLevel: t.varchar('year_level', { length: 255 }),
+  semester: t.varchar('semester', { length: 255 }),
   supervisorEmail: t.varchar('supervisor_email', { length: 255 }),
+  supervisorName: t.varchar('supervisor_name', { length: 255 }),
+  supervisorContactNumber: t.varchar('supervisor_contact_number', {
+    length: 255,
+  }),
+  supervisorAddress: t.text('supervisor_address'),
   studentCoordinatorRequestId: t
     .int('request_id')
     .references(() => studentCoordinatorRequest.id, {
@@ -212,14 +222,14 @@ export const links = table('links', {
   url: t.text('url').notNull(),
 });
 
+// Requirements
 export const formTemplates = table('form_templates', {
   id: t.int('id').primaryKey().autoincrement(),
-  type: t.mysqlEnum('type', ['template', 'form']).notNull(),
-  title: t.varchar('form_name', { length: 255 }).notNull(),
+  title: t.varchar('title', { length: 255 }).notNull(),
   category: t.mysqlEnum('category', ['pre-ojt', 'ojt', 'post-ojt']).notNull(),
+  isEmailToSupervisor: t.boolean('is_email_to_supervisor').default(false),
+  canStudentView: t.boolean('can_student_view').default(true),
   fileUrl: t.text('file_url'),
-  formId: t.varchar('form_id', { length: 255 }), // Google form Id
-  formUrl: t.text('form_url'), // Google form responder link
   uploadedBy: t
     .int('uploaded_by')
     .notNull()
@@ -238,6 +248,316 @@ export const formTemplates = table('form_templates', {
 
 export const insertFormTemplateSchema = createInsertSchema(formTemplates);
 
+export const studentFeedbackTemplate = table('st_fb_temp', {
+  id: t.int('id').primaryKey().autoincrement(),
+  isActive: t.boolean('is_active').default(true),
+  version: t.int('version').notNull().default(1),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  updatedAt: t
+    .bigint('updated_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`)
+    .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const feedbackQuestions = table('fb_questions', {
+  id: t.int('id').primaryKey().autoincrement(),
+  templateId: t
+    .int('template_id')
+    .notNull()
+    .references(() => studentFeedbackTemplate.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  question: t.text('question').notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  updatedAt: t
+    .bigint('updated_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`)
+    .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const studentFeedbackResponse = table('st_fb_resp', {
+  id: t.int('id').primaryKey().autoincrement(),
+  ojtId: t
+    .int('ojt_id')
+    .notNull()
+    .references(() => ojtApplication.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  templateId: t
+    .int('template_id')
+    .notNull()
+    .references(() => studentFeedbackTemplate.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  templateVersion: t.int('template_version').notNull(),
+  responseDate: t
+    .bigint('response_date', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  problems: t.text('problems'),
+  otherConcerns: t.text('other_concerns'),
+  signature: t.text('signature'),
+});
+
+export const feedbackResponses = table('fb_responses', {
+  id: t.int('id').primaryKey().autoincrement(),
+  responseId: t
+    .int('response_id')
+    .notNull()
+    .references(() => studentFeedbackResponse.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  questionId: t
+    .int('question_id')
+    .notNull()
+    .references(() => feedbackQuestions.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  responseValue: t
+    .mysqlEnum('response_value', ['SA', 'A', 'N', 'D', 'SD'])
+    .notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const supervisorFeedbackTemplate = table('sv_fb_temp', {
+  id: t.int('id').primaryKey().autoincrement(),
+  isActive: t.boolean('is_active').default(true),
+  version: t.int('version').notNull().default(1),
+  studentSubmissionTemplateId: t
+    .int('student_submission_template_id')
+    .notNull()
+    .references(() => formTemplates.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  updatedAt: t
+    .bigint('updated_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`)
+    .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const supervisorFeedbackQuestions = table('sv_fb_questions', {
+  id: t.int('id').primaryKey().autoincrement(),
+  templateId: t
+    .int('template_id')
+    .notNull()
+    .references(() => supervisorFeedbackTemplate.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  question: t.text('question').notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  updatedAt: t
+    .bigint('updated_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`)
+    .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const supervisorFeedbackResponse = table('sv_fb_resp', {
+  id: t.int('id').primaryKey().autoincrement(),
+  ojtId: t
+    .int('ojt_id')
+    .notNull()
+    .references(() => ojtApplication.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  templateId: t
+    .int('template_id')
+    .notNull()
+    .references(() => supervisorFeedbackTemplate.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  templateVersion: t.int('template_version').notNull(),
+  responseDate: t
+    .bigint('response_date', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  otherCommentsAndSuggestions: t.text('other_comments_and_suggestions'),
+  signature: t.text('signature'),
+});
+
+export const supervisorFeedbackResponses = table('sv_fb_responses', {
+  id: t.int('id').primaryKey().autoincrement(),
+  responseId: t
+    .int('response_id')
+    .notNull()
+    .references(() => supervisorFeedbackResponse.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  questionId: t
+    .int('question_id')
+    .notNull()
+    .references(() => supervisorFeedbackQuestions.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  responseValue: t
+    .mysqlEnum('response_value', ['SA', 'A', 'N', 'D', 'SD'])
+    .notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const supervisorFeedbackEmail = table('sv_fb_email', {
+  id: t.int('id').primaryKey().autoincrement(),
+  ojtId: t
+    .int('ojt_id')
+    .notNull()
+    .references(() => ojtApplication.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  accessCode: t.varchar('access_code', { length: 255 }).notNull(),
+  feedbackSubmitted: t.boolean('feedback_submitted').default(false),
+  email: t.varchar('email', { length: 255 }).notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const appraisalTemplates = table('ap_templates', {
+  id: t.int('id').primaryKey().autoincrement(),
+  formTemplateId: t
+    .int('form_template_id')
+    .notNull()
+    .references(() => formTemplates.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  isActive: t.boolean('is_active').default(true),
+  version: t.int('version').notNull().default(1),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  updatedAt: t
+    .bigint('updated_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`)
+    .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const appraisalCategories = table('ap_categories', {
+  id: t.int('id').primaryKey().autoincrement(),
+  templateId: t
+    .int('template_id')
+    .notNull()
+    .references(() => appraisalTemplates.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  name: t.varchar('name', { length: 255 }).notNull(),
+  displayOrder: t.int('display_order').notNull().default(0),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  updatedAt: t
+    .bigint('updated_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`)
+    .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const appraisalQuestions = table('ap_questions', {
+  id: t.int('id').primaryKey().autoincrement(),
+  categoryId: t
+    .int('category_id')
+    .notNull()
+    .references(() => appraisalCategories.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  question: t.text('question').notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  updatedAt: t
+    .bigint('updated_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`)
+    .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const appraisalResponse = table('ap_response', {
+  id: t.int('id').primaryKey().autoincrement(),
+  templateId: t
+    .int('template_id')
+    .notNull()
+    .references(() => appraisalTemplates.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  ojtId: t
+    .int('ojt_id')
+    .notNull()
+    .references(() => ojtApplication.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  comments: t.text('comments'),
+  supervisorSignature: t.text('supervisor_signature'),
+  totalPoints: t.int('total_points').notNull().default(0),
+  supervisorSignatureDate: t
+    .bigint('supervisor_signature_date', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const appraisalResponses = table('ap_responses', {
+  id: t.int('id').primaryKey().autoincrement(),
+  responseId: t
+    .int('response_id')
+    .notNull()
+    .references(() => appraisalResponse.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  questionId: t
+    .int('question_id')
+    .notNull()
+    .references(() => appraisalQuestions.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  rating: t.int('rating').notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
+export const appraisalEmail = table('ap_email', {
+  id: t.int('id').primaryKey().autoincrement(),
+  ojtId: t
+    .int('ojt_id')
+    .notNull()
+    .references(() => ojtApplication.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  accessCode: t.varchar('access_code', { length: 255 }).notNull(),
+  feedbackSubmitted: t.boolean('feedback_submitted').default(false),
+  email: t.varchar('email', { length: 255 }).notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
 export const studentSubmissions = table('student_submissions', {
   id: t.int('id').primaryKey().autoincrement(),
   ojtId: t
@@ -255,7 +575,6 @@ export const studentSubmissions = table('student_submissions', {
       onUpdate: 'cascade',
     }),
   submittedFileUrl: t.text('submitted_file_url'),
-  submittedGoogleForm: t.boolean().default(false),
   remarks: t.text('remarks'),
   status: t
     .mysqlEnum('status', ['pending', 'approved', 'resubmit'])
@@ -263,6 +582,18 @@ export const studentSubmissions = table('student_submissions', {
   submissionDate: t
     .bigint('submission_date', { mode: 'number' })
     .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+  supervisorFeedbackResponseId: t
+    .int('sv_fb_resp_id')
+    .references(() => supervisorFeedbackResponse.id, {
+      onDelete: 'set null',
+      onUpdate: 'cascade',
+    }),
+  appraisalResponseId: t
+    .int('appraisal_response_id')
+    .references(() => appraisalResponse.id, {
+      onDelete: 'set null',
+      onUpdate: 'cascade',
+    }),
 });
 
 export const notifications = table('notifications', {

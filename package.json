@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "hono": "^4.7.2",
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "stream-chat": "^8.60.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
   }
 }

@@ -12,29 +12,51 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as RegisterImport } from './routes/register'
+import { Route as FeedbackImport } from './routes/feedback'
+import { Route as AppraisalImport } from './routes/appraisal'
 import { Route as AuthenticatedNoSidebarImport } from './routes/_authenticated-no-sidebar'
 import { Route as AuthenticatedImport } from './routes/_authenticated'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthenticatedUsersImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTemplatesImport } from './routes/_authenticated/templates'
+import { Route as AuthenticatedSupervisorFeedbackTemplateImport } from './routes/_authenticated/supervisor-feedback-template'
+import { Route as AuthenticatedSupervisorFeedbackEmailImport } from './routes/_authenticated/supervisor-feedback-email'
+import { Route as AuthenticatedStudentFeedbackTemplateImport } from './routes/_authenticated/student-feedback-template'
+import { Route as AuthenticatedStudentFeedbackFormImport } from './routes/_authenticated/student-feedback-form'
 import { Route as AuthenticatedRequestsImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedProgramsImport } from './routes/_authenticated/programs'
 import { Route as AuthenticatedProfileImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedOjtImport } from './routes/_authenticated/ojt'
+import { Route as AuthenticatedFormChartsImport } from './routes/_authenticated/form-charts'
 import { Route as AuthenticatedDepartmentsImport } from './routes/_authenticated/departments'
 import { Route as AuthenticatedDashboardImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCompanyImport } from './routes/_authenticated/company'
 import { Route as AuthenticatedClassesImport } from './routes/_authenticated/classes'
+import { Route as AuthenticatedAppraisalTemplateImport } from './routes/_authenticated/appraisal-template'
+import { Route as AuthenticatedAppraisalEmailImport } from './routes/_authenticated/appraisal-email'
 import { Route as AuthenticatedNoSidebarAssignCoordinatorImport } from './routes/_authenticated-no-sidebar/assign-coordinator'
 import { Route as AuthenticatedNoSidebarAssignCompanyImport } from './routes/_authenticated-no-sidebar/assign-company'
 import { Route as AuthenticatedReportsIndexImport } from './routes/_authenticated/reports.index'
+import { Route as AuthenticatedOjtIndexImport } from './routes/_authenticated/ojt.index'
 import { Route as AuthenticatedReportsDayImport } from './routes/_authenticated/reports.$day'
+import { Route as AuthenticatedOjtIdImport } from './routes/_authenticated/ojt.$id'
 
 // Create/Update Routes
 
 const RegisterRoute = RegisterImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const FeedbackRoute = FeedbackImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AppraisalRoute = AppraisalImport.update({
+  id: '/appraisal',
+  path: '/appraisal',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -66,6 +88,34 @@ const AuthenticatedTemplatesRoute = AuthenticatedTemplatesImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
+const AuthenticatedSupervisorFeedbackTemplateRoute =
+  AuthenticatedSupervisorFeedbackTemplateImport.update({
+    id: '/supervisor-feedback-template',
+    path: '/supervisor-feedback-template',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+const AuthenticatedSupervisorFeedbackEmailRoute =
+  AuthenticatedSupervisorFeedbackEmailImport.update({
+    id: '/supervisor-feedback-email',
+    path: '/supervisor-feedback-email',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+const AuthenticatedStudentFeedbackTemplateRoute =
+  AuthenticatedStudentFeedbackTemplateImport.update({
+    id: '/student-feedback-template',
+    path: '/student-feedback-template',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+const AuthenticatedStudentFeedbackFormRoute =
+  AuthenticatedStudentFeedbackFormImport.update({
+    id: '/student-feedback-form',
+    path: '/student-feedback-form',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
 const AuthenticatedRequestsRoute = AuthenticatedRequestsImport.update({
   id: '/requests',
   path: '/requests',
@@ -84,9 +134,9 @@ const AuthenticatedProfileRoute = AuthenticatedProfileImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
-const AuthenticatedOjtRoute = AuthenticatedOjtImport.update({
-  id: '/ojt',
-  path: '/ojt',
+const AuthenticatedFormChartsRoute = AuthenticatedFormChartsImport.update({
+  id: '/form-charts',
+  path: '/form-charts',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
@@ -114,6 +164,20 @@ const AuthenticatedClassesRoute = AuthenticatedClassesImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
+const AuthenticatedAppraisalTemplateRoute =
+  AuthenticatedAppraisalTemplateImport.update({
+    id: '/appraisal-template',
+    path: '/appraisal-template',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+const AuthenticatedAppraisalEmailRoute =
+  AuthenticatedAppraisalEmailImport.update({
+    id: '/appraisal-email',
+    path: '/appraisal-email',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
 const AuthenticatedNoSidebarAssignCoordinatorRoute =
   AuthenticatedNoSidebarAssignCoordinatorImport.update({
     id: '/assign-coordinator',
@@ -134,9 +198,21 @@ const AuthenticatedReportsIndexRoute = AuthenticatedReportsIndexImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
+const AuthenticatedOjtIndexRoute = AuthenticatedOjtIndexImport.update({
+  id: '/ojt/',
+  path: '/ojt/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
 const AuthenticatedReportsDayRoute = AuthenticatedReportsDayImport.update({
   id: '/reports/$day',
   path: '/reports/$day',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedOjtIdRoute = AuthenticatedOjtIdImport.update({
+  id: '/ojt/$id',
+  path: '/ojt/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
@@ -165,6 +241,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNoSidebarImport
       parentRoute: typeof rootRoute
     }
+    '/appraisal': {
+      id: '/appraisal'
+      path: '/appraisal'
+      fullPath: '/appraisal'
+      preLoaderRoute: typeof AppraisalImport
+      parentRoute: typeof rootRoute
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackImport
+      parentRoute: typeof rootRoute
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -185,6 +275,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/assign-coordinator'
       preLoaderRoute: typeof AuthenticatedNoSidebarAssignCoordinatorImport
       parentRoute: typeof AuthenticatedNoSidebarImport
+    }
+    '/_authenticated/appraisal-email': {
+      id: '/_authenticated/appraisal-email'
+      path: '/appraisal-email'
+      fullPath: '/appraisal-email'
+      preLoaderRoute: typeof AuthenticatedAppraisalEmailImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/appraisal-template': {
+      id: '/_authenticated/appraisal-template'
+      path: '/appraisal-template'
+      fullPath: '/appraisal-template'
+      preLoaderRoute: typeof AuthenticatedAppraisalTemplateImport
+      parentRoute: typeof AuthenticatedImport
     }
     '/_authenticated/classes': {
       id: '/_authenticated/classes'
@@ -214,11 +318,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDepartmentsImport
       parentRoute: typeof AuthenticatedImport
     }
-    '/_authenticated/ojt': {
-      id: '/_authenticated/ojt'
-      path: '/ojt'
-      fullPath: '/ojt'
-      preLoaderRoute: typeof AuthenticatedOjtImport
+    '/_authenticated/form-charts': {
+      id: '/_authenticated/form-charts'
+      path: '/form-charts'
+      fullPath: '/form-charts'
+      preLoaderRoute: typeof AuthenticatedFormChartsImport
       parentRoute: typeof AuthenticatedImport
     }
     '/_authenticated/profile': {
@@ -242,6 +346,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRequestsImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/student-feedback-form': {
+      id: '/_authenticated/student-feedback-form'
+      path: '/student-feedback-form'
+      fullPath: '/student-feedback-form'
+      preLoaderRoute: typeof AuthenticatedStudentFeedbackFormImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/student-feedback-template': {
+      id: '/_authenticated/student-feedback-template'
+      path: '/student-feedback-template'
+      fullPath: '/student-feedback-template'
+      preLoaderRoute: typeof AuthenticatedStudentFeedbackTemplateImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/supervisor-feedback-email': {
+      id: '/_authenticated/supervisor-feedback-email'
+      path: '/supervisor-feedback-email'
+      fullPath: '/supervisor-feedback-email'
+      preLoaderRoute: typeof AuthenticatedSupervisorFeedbackEmailImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/supervisor-feedback-template': {
+      id: '/_authenticated/supervisor-feedback-template'
+      path: '/supervisor-feedback-template'
+      fullPath: '/supervisor-feedback-template'
+      preLoaderRoute: typeof AuthenticatedSupervisorFeedbackTemplateImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/templates': {
       id: '/_authenticated/templates'
       path: '/templates'
@@ -256,11 +388,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/ojt/$id': {
+      id: '/_authenticated/ojt/$id'
+      path: '/ojt/$id'
+      fullPath: '/ojt/$id'
+      preLoaderRoute: typeof AuthenticatedOjtIdImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/reports/$day': {
       id: '/_authenticated/reports/$day'
       path: '/reports/$day'
       fullPath: '/reports/$day'
       preLoaderRoute: typeof AuthenticatedReportsDayImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/ojt/': {
+      id: '/_authenticated/ojt/'
+      path: '/ojt'
+      fullPath: '/ojt'
+      preLoaderRoute: typeof AuthenticatedOjtIndexImport
       parentRoute: typeof AuthenticatedImport
     }
     '/_authenticated/reports/': {
@@ -276,32 +422,51 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAppraisalEmailRoute: typeof AuthenticatedAppraisalEmailRoute
+  AuthenticatedAppraisalTemplateRoute: typeof AuthenticatedAppraisalTemplateRoute
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRoute
   AuthenticatedCompanyRoute: typeof AuthenticatedCompanyRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepartmentsRoute: typeof AuthenticatedDepartmentsRoute
-  AuthenticatedOjtRoute: typeof AuthenticatedOjtRoute
+  AuthenticatedFormChartsRoute: typeof AuthenticatedFormChartsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgramsRoute: typeof AuthenticatedProgramsRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
+  AuthenticatedStudentFeedbackFormRoute: typeof AuthenticatedStudentFeedbackFormRoute
+  AuthenticatedStudentFeedbackTemplateRoute: typeof AuthenticatedStudentFeedbackTemplateRoute
+  AuthenticatedSupervisorFeedbackEmailRoute: typeof AuthenticatedSupervisorFeedbackEmailRoute
+  AuthenticatedSupervisorFeedbackTemplateRoute: typeof AuthenticatedSupervisorFeedbackTemplateRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
+  AuthenticatedOjtIdRoute: typeof AuthenticatedOjtIdRoute
   AuthenticatedReportsDayRoute: typeof AuthenticatedReportsDayRoute
+  AuthenticatedOjtIndexRoute: typeof AuthenticatedOjtIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAppraisalEmailRoute: AuthenticatedAppraisalEmailRoute,
+  AuthenticatedAppraisalTemplateRoute: AuthenticatedAppraisalTemplateRoute,
   AuthenticatedClassesRoute: AuthenticatedClassesRoute,
   AuthenticatedCompanyRoute: AuthenticatedCompanyRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepartmentsRoute: AuthenticatedDepartmentsRoute,
-  AuthenticatedOjtRoute: AuthenticatedOjtRoute,
+  AuthenticatedFormChartsRoute: AuthenticatedFormChartsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgramsRoute: AuthenticatedProgramsRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
+  AuthenticatedStudentFeedbackFormRoute: AuthenticatedStudentFeedbackFormRoute,
+  AuthenticatedStudentFeedbackTemplateRoute:
+    AuthenticatedStudentFeedbackTemplateRoute,
+  AuthenticatedSupervisorFeedbackEmailRoute:
+    AuthenticatedSupervisorFeedbackEmailRoute,
+  AuthenticatedSupervisorFeedbackTemplateRoute:
+    AuthenticatedSupervisorFeedbackTemplateRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
+  AuthenticatedOjtIdRoute: AuthenticatedOjtIdRoute,
   AuthenticatedReportsDayRoute: AuthenticatedReportsDayRoute,
+  AuthenticatedOjtIndexRoute: AuthenticatedOjtIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
 }
 
@@ -330,40 +495,60 @@ const AuthenticatedNoSidebarRouteWithChildren =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '': typeof AuthenticatedNoSidebarRouteWithChildren
+  '/appraisal': typeof AppraisalRoute
+  '/feedback': typeof FeedbackRoute
   '/register': typeof RegisterRoute
   '/assign-company': typeof AuthenticatedNoSidebarAssignCompanyRoute
   '/assign-coordinator': typeof AuthenticatedNoSidebarAssignCoordinatorRoute
+  '/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
+  '/appraisal-template': typeof AuthenticatedAppraisalTemplateRoute
   '/classes': typeof AuthenticatedClassesRoute
   '/company': typeof AuthenticatedCompanyRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/departments': typeof AuthenticatedDepartmentsRoute
-  '/ojt': typeof AuthenticatedOjtRoute
+  '/form-charts': typeof AuthenticatedFormChartsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/programs': typeof AuthenticatedProgramsRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/student-feedback-form': typeof AuthenticatedStudentFeedbackFormRoute
+  '/student-feedback-template': typeof AuthenticatedStudentFeedbackTemplateRoute
+  '/supervisor-feedback-email': typeof AuthenticatedSupervisorFeedbackEmailRoute
+  '/supervisor-feedback-template': typeof AuthenticatedSupervisorFeedbackTemplateRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/ojt/$id': typeof AuthenticatedOjtIdRoute
   '/reports/$day': typeof AuthenticatedReportsDayRoute
+  '/ojt': typeof AuthenticatedOjtIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '': typeof AuthenticatedNoSidebarRouteWithChildren
+  '/appraisal': typeof AppraisalRoute
+  '/feedback': typeof FeedbackRoute
   '/register': typeof RegisterRoute
   '/assign-company': typeof AuthenticatedNoSidebarAssignCompanyRoute
   '/assign-coordinator': typeof AuthenticatedNoSidebarAssignCoordinatorRoute
+  '/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
+  '/appraisal-template': typeof AuthenticatedAppraisalTemplateRoute
   '/classes': typeof AuthenticatedClassesRoute
   '/company': typeof AuthenticatedCompanyRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/departments': typeof AuthenticatedDepartmentsRoute
-  '/ojt': typeof AuthenticatedOjtRoute
+  '/form-charts': typeof AuthenticatedFormChartsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/programs': typeof AuthenticatedProgramsRoute
   '/requests': typeof AuthenticatedRequestsRoute
+  '/student-feedback-form': typeof AuthenticatedStudentFeedbackFormRoute
+  '/student-feedback-template': typeof AuthenticatedStudentFeedbackTemplateRoute
+  '/supervisor-feedback-email': typeof AuthenticatedSupervisorFeedbackEmailRoute
+  '/supervisor-feedback-template': typeof AuthenticatedSupervisorFeedbackTemplateRoute
   '/templates': typeof AuthenticatedTemplatesRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/ojt/$id': typeof AuthenticatedOjtIdRoute
   '/reports/$day': typeof AuthenticatedReportsDayRoute
+  '/ojt': typeof AuthenticatedOjtIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
 }
 
@@ -372,20 +557,30 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated-no-sidebar': typeof AuthenticatedNoSidebarRouteWithChildren
+  '/appraisal': typeof AppraisalRoute
+  '/feedback': typeof FeedbackRoute
   '/register': typeof RegisterRoute
   '/_authenticated-no-sidebar/assign-company': typeof AuthenticatedNoSidebarAssignCompanyRoute
   '/_authenticated-no-sidebar/assign-coordinator': typeof AuthenticatedNoSidebarAssignCoordinatorRoute
+  '/_authenticated/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
+  '/_authenticated/appraisal-template': typeof AuthenticatedAppraisalTemplateRoute
   '/_authenticated/classes': typeof AuthenticatedClassesRoute
   '/_authenticated/company': typeof AuthenticatedCompanyRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/departments': typeof AuthenticatedDepartmentsRoute
-  '/_authenticated/ojt': typeof AuthenticatedOjtRoute
+  '/_authenticated/form-charts': typeof AuthenticatedFormChartsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/programs': typeof AuthenticatedProgramsRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
+  '/_authenticated/student-feedback-form': typeof AuthenticatedStudentFeedbackFormRoute
+  '/_authenticated/student-feedback-template': typeof AuthenticatedStudentFeedbackTemplateRoute
+  '/_authenticated/supervisor-feedback-email': typeof AuthenticatedSupervisorFeedbackEmailRoute
+  '/_authenticated/supervisor-feedback-template': typeof AuthenticatedSupervisorFeedbackTemplateRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/_authenticated/ojt/$id': typeof AuthenticatedOjtIdRoute
   '/_authenticated/reports/$day': typeof AuthenticatedReportsDayRoute
+  '/_authenticated/ojt/': typeof AuthenticatedOjtIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
 }
 
@@ -394,59 +589,89 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | ''
+    | '/appraisal'
+    | '/feedback'
     | '/register'
     | '/assign-company'
     | '/assign-coordinator'
+    | '/appraisal-email'
+    | '/appraisal-template'
     | '/classes'
     | '/company'
     | '/dashboard'
     | '/departments'
-    | '/ojt'
+    | '/form-charts'
     | '/profile'
     | '/programs'
     | '/requests'
+    | '/student-feedback-form'
+    | '/student-feedback-template'
+    | '/supervisor-feedback-email'
+    | '/supervisor-feedback-template'
     | '/templates'
     | '/users'
+    | '/ojt/$id'
     | '/reports/$day'
+    | '/ojt'
     | '/reports'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | ''
+    | '/appraisal'
+    | '/feedback'
     | '/register'
     | '/assign-company'
     | '/assign-coordinator'
+    | '/appraisal-email'
+    | '/appraisal-template'
     | '/classes'
     | '/company'
     | '/dashboard'
     | '/departments'
-    | '/ojt'
+    | '/form-charts'
     | '/profile'
     | '/programs'
     | '/requests'
+    | '/student-feedback-form'
+    | '/student-feedback-template'
+    | '/supervisor-feedback-email'
+    | '/supervisor-feedback-template'
     | '/templates'
     | '/users'
+    | '/ojt/$id'
     | '/reports/$day'
+    | '/ojt'
     | '/reports'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated-no-sidebar'
+    | '/appraisal'
+    | '/feedback'
     | '/register'
     | '/_authenticated-no-sidebar/assign-company'
     | '/_authenticated-no-sidebar/assign-coordinator'
+    | '/_authenticated/appraisal-email'
+    | '/_authenticated/appraisal-template'
     | '/_authenticated/classes'
     | '/_authenticated/company'
     | '/_authenticated/dashboard'
     | '/_authenticated/departments'
-    | '/_authenticated/ojt'
+    | '/_authenticated/form-charts'
     | '/_authenticated/profile'
     | '/_authenticated/programs'
     | '/_authenticated/requests'
+    | '/_authenticated/student-feedback-form'
+    | '/_authenticated/student-feedback-template'
+    | '/_authenticated/supervisor-feedback-email'
+    | '/_authenticated/supervisor-feedback-template'
     | '/_authenticated/templates'
     | '/_authenticated/users'
+    | '/_authenticated/ojt/$id'
     | '/_authenticated/reports/$day'
+    | '/_authenticated/ojt/'
     | '/_authenticated/reports/'
   fileRoutesById: FileRoutesById
 }
@@ -455,6 +680,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthenticatedNoSidebarRoute: typeof AuthenticatedNoSidebarRouteWithChildren
+  AppraisalRoute: typeof AppraisalRoute
+  FeedbackRoute: typeof FeedbackRoute
   RegisterRoute: typeof RegisterRoute
 }
 
@@ -462,6 +689,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthenticatedNoSidebarRoute: AuthenticatedNoSidebarRouteWithChildren,
+  AppraisalRoute: AppraisalRoute,
+  FeedbackRoute: FeedbackRoute,
   RegisterRoute: RegisterRoute,
 }
 
@@ -478,6 +707,8 @@ export const routeTree = rootRoute
         "/",
         "/_authenticated",
         "/_authenticated-no-sidebar",
+        "/appraisal",
+        "/feedback",
         "/register"
       ]
     },
@@ -487,17 +718,25 @@ export const routeTree = rootRoute
     "/_authenticated": {
       "filePath": "_authenticated.tsx",
       "children": [
+        "/_authenticated/appraisal-email",
+        "/_authenticated/appraisal-template",
         "/_authenticated/classes",
         "/_authenticated/company",
         "/_authenticated/dashboard",
         "/_authenticated/departments",
-        "/_authenticated/ojt",
+        "/_authenticated/form-charts",
         "/_authenticated/profile",
         "/_authenticated/programs",
         "/_authenticated/requests",
+        "/_authenticated/student-feedback-form",
+        "/_authenticated/student-feedback-template",
+        "/_authenticated/supervisor-feedback-email",
+        "/_authenticated/supervisor-feedback-template",
         "/_authenticated/templates",
         "/_authenticated/users",
+        "/_authenticated/ojt/$id",
         "/_authenticated/reports/$day",
+        "/_authenticated/ojt/",
         "/_authenticated/reports/"
       ]
     },
@@ -507,6 +746,12 @@ export const routeTree = rootRoute
         "/_authenticated-no-sidebar/assign-company",
         "/_authenticated-no-sidebar/assign-coordinator"
       ]
+    },
+    "/appraisal": {
+      "filePath": "appraisal.tsx"
+    },
+    "/feedback": {
+      "filePath": "feedback.tsx"
     },
     "/register": {
       "filePath": "register.tsx"
@@ -518,6 +763,14 @@ export const routeTree = rootRoute
     "/_authenticated-no-sidebar/assign-coordinator": {
       "filePath": "_authenticated-no-sidebar/assign-coordinator.tsx",
       "parent": "/_authenticated-no-sidebar"
+    },
+    "/_authenticated/appraisal-email": {
+      "filePath": "_authenticated/appraisal-email.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/appraisal-template": {
+      "filePath": "_authenticated/appraisal-template.tsx",
+      "parent": "/_authenticated"
     },
     "/_authenticated/classes": {
       "filePath": "_authenticated/classes.tsx",
@@ -535,8 +788,8 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/departments.tsx",
       "parent": "/_authenticated"
     },
-    "/_authenticated/ojt": {
-      "filePath": "_authenticated/ojt.tsx",
+    "/_authenticated/form-charts": {
+      "filePath": "_authenticated/form-charts.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/profile": {
@@ -551,6 +804,22 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/requests.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/student-feedback-form": {
+      "filePath": "_authenticated/student-feedback-form.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/student-feedback-template": {
+      "filePath": "_authenticated/student-feedback-template.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/supervisor-feedback-email": {
+      "filePath": "_authenticated/supervisor-feedback-email.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/supervisor-feedback-template": {
+      "filePath": "_authenticated/supervisor-feedback-template.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/templates": {
       "filePath": "_authenticated/templates.tsx",
       "parent": "/_authenticated"
@@ -559,8 +828,16 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/users.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/ojt/$id": {
+      "filePath": "_authenticated/ojt.$id.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/reports/$day": {
       "filePath": "_authenticated/reports.$day.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/ojt/": {
+      "filePath": "_authenticated/ojt.index.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/reports/": {

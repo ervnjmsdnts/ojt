@@ -2,6 +2,7 @@ import PageHeaderText from '@/components/page-header-text';
 import RequestStatusBadge from '@/components/request-status-badge';
 import ApproveDialog from '@/components/requests/approve-dialog';
 import RejectDialog from '@/components/requests/reject-dialog';
+import ViewRegistrationFormDialog from '@/components/requests/view-registration-form-dialog';
 import TableRowSkeleton from '@/components/table-row-skeleton';
 import { SidebarInset } from '@/components/ui/sidebar';
 import {
@@ -36,6 +37,7 @@ function RouteComponent() {
             <TableHeader>
               <TableRow>
                 <TableHead>Student</TableHead>
+                <TableHead className='text-center'>Registration Form</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Request Date & Time</TableHead>
                 <TableHead className='text-center'>Actions</TableHead>
@@ -48,6 +50,11 @@ function RouteComponent() {
                 data?.map((request) => (
                   <TableRow key={request.id}>
                     <TableCell>{request.student.fullName}</TableCell>
+                    <TableCell className='flex items-center justify-center'>
+                      <ViewRegistrationFormDialog
+                        registrationFormUrl={request.registrationFormUrl}
+                      />
+                    </TableCell>
                     <TableCell>
                       <RequestStatusBadge status={request.status} />
                     </TableCell>

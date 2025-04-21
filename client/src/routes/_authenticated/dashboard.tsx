@@ -19,7 +19,7 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
 function RouteComponent() {
   const { user } = Route.useRouteContext();
   if (user) {
-    if (user.role === 'student') return <DashboardStudent />;
-    else return <DashboardAdmin role={user.role} />;
+    if (user.role === 'student') return <DashboardStudent userId={user.id} />;
+    else return <DashboardAdmin role={user.role} userId={user.id} />;
   }
 }

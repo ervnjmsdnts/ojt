@@ -15,6 +15,8 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string(),
   GOOGLE_CREDENTIALS_B64: z.string(),
   RESEND_API_KEY: z.string(),
+  STREAM_API_KEY: z.string(),
+  STREAM_API_SECRET: z.string(),
 });
 
 export type env = z.infer<typeof envSchema>;

@@ -29,7 +29,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ParsedFormValue } from 'hono/types';
-
+import { toast } from 'sonner';
+import BSULogo from '@/assets/bsu-logo.png';
 export const Route = createFileRoute('/register')({
   beforeLoad: async ({ context }) => {
     const queryClient = context.queryClient;
@@ -51,6 +52,8 @@ const schema = z.object({
   password: z.string().min(1),
   fullName: z.string().min(1),
   gender: z.enum(['male', 'female']),
+  yearLevel: z.string().min(1),
+  semester: z.string().min(1),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -63,12 +66,15 @@ async function register(data: Schema) {
       classId: data.classId as unknown as ParsedFormValue,
       password: data.password,
       fullName: data.fullName,
+      yearLevel: data.yearLevel,
+      semester: data.semester,
       gender: data.gender,
       registrationForm: data.registrationForm,
     },
   });
   if (!res.ok) {
-    throw new Error('server error');
+    const error = await res.json();
+    throw new Error(error.message);
   }
 }
 
@@ -91,134 +97,210 @@ function RouteComponent() {
   const { mutate } = useMutation({ mutationFn: register });
 
   const onSubmit = async (data: Schema) => {
-    mutate(data, { onSuccess: () => navigate({ to: '/' }) });
+    if (!data.email.endsWith('@g.batstate-u.edu.ph')) {
+      toast.error('Only Batangas State University email addresses are allowed');
+      return;
+    }
+    mutate(data, {
+      onSuccess: () => navigate({ to: '/' }),
+      onError: (error) => {
+        console.log(error.message);
+        toast.error(error.message);
+      },
+    });
   };
 
   return (
     <div className='grid place-items-center p-2 h-screen'>
-      <Card className='max-w-md w-full'>
+      <Card className='max-w-2xl w-full'>
         <CardHeader>
+          <div className='flex flex-col justify-center items-center gap-2'>
+            <img src={BSULogo} alt='BSU Logo' className='w-24' />
+            <div className='flex flex-col items-center gap-1'>
+              <p className='font-semibold text-lg'>Batangas State University</p>
+              <p className='text-sm'>Student Internship Portal</p>
+            </div>
+          </div>
           <CardTitle className='text-xl'>Register</CardTitle>
           <CardDescription>Enter your information</CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent>
-              <FormField
-                control={form.control}
-                name='srCode'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='email'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input type='email' {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='fullName'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='password'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type='password' {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='gender'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Gender</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select a gender' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='male'>Male</SelectItem>
-                        <SelectItem value='female'>Female</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='classId'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Class</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value?.toString()}>
-                      <FormControl>
-                        <SelectTrigger disabled={isPending}>
-                          <SelectValue placeholder='Select a class' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {!isPending &&
-                          classes &&
-                          classes.map((c) => (
-                            <SelectItem key={c.id} value={c.id.toString()}>
-                              {c.name}
+              <div className='grid grid-cols-2 gap-4'>
+                <div>
+                  <FormField
+                    control={form.control}
+                    name='srCode'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ID</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='email'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input type='email' {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='fullName'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='password'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type='password' {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='yearLevel'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Year Level</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder='Select a year level' />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value='1st year'>1st year</SelectItem>
+                            <SelectItem value='2nd year'>2nd year</SelectItem>
+                            <SelectItem value='3rd year'>3rd year</SelectItem>
+                            <SelectItem value='4th year'>4th year</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div>
+                  <FormField
+                    control={form.control}
+                    name='semester'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Semester</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder='Select a semester' />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value='1st semester'>
+                              1st semester
                             </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='registrationForm'
-                render={({ field: { value, onChange, ...fieldProps } }) => (
-                  <FormItem>
-                    <FormLabel>Registration Form</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...fieldProps}
-                        type='file'
-                        onChange={(e) =>
-                          onChange(e.target.files && e.target.files[0])
-                        }
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                            <SelectItem value='2nd semester'>
+                              2nd semester
+                            </SelectItem>
+                            <SelectItem value='3rd semester'>
+                              3rd semester
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='gender'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gender</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder='Select a gender' />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value='male'>Male</SelectItem>
+                            <SelectItem value='female'>Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='classId'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Class</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value?.toString()}>
+                          <FormControl>
+                            <SelectTrigger disabled={isPending}>
+                              <SelectValue placeholder='Select a class' />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {!isPending &&
+                              classes &&
+                              classes.map((c) => (
+                                <SelectItem key={c.id} value={c.id.toString()}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name='registrationForm'
+                    render={({ field: { value, onChange, ...fieldProps } }) => (
+                      <FormItem>
+                        <FormLabel>Registration Form</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...fieldProps}
+                            type='file'
+                            onChange={(e) =>
+                              onChange(e.target.files && e.target.files[0])
+                            }
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </CardContent>
             <CardFooter className='w-full flex-col'>
               <Button className='w-full'>Register</Button>

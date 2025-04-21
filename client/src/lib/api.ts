@@ -155,6 +155,25 @@ export async function updateCompanyName(data: UpdateCompanyName) {
   return json;
 }
 
+export type UpdateCompanyAddress = {
+  address: string;
+  companyId: number;
+};
+
+export async function updateCompanyAddress(data: UpdateCompanyAddress) {
+  const res = await api.company[':id'].address.$patch({
+    json: { address: data.address },
+    param: { id: data.companyId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
 export type UpdateSubmissionRemark = {
   remark: string;
   submissionId: number;
@@ -471,6 +490,10 @@ export async function rejectRequest(data: { requestId: number }) {
 export async function assignCompany(data: {
   companyId: number;
   supervisorEmail: string;
+  supervisorName: string;
+  supervisorContactNumber: string;
+  supervisorAddress: string;
+  totalOJTHours: number;
 }) {
   const res = await api.company.assign.$post({ json: data });
 
@@ -555,7 +578,653 @@ export async function getStudentDashboard() {
 }
 
 export async function createGlobalNotification(data: { message: string }) {
-  const res = await api.notification.global.$post({ json: data });
+  const res = await api.notification.global.$post({
+    json: data,
+  });
+
+  if (!res.ok) {
+    throw new Error('Server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function createStudentNotification(data: {
+  message: string;
+  targetStudentIds: number[];
+}) {
+  const res = await api.notification.student.$post({
+    json: data,
+  });
+
+  if (!res.ok) {
+    throw new Error('Server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function updateCompanyFile(data: {
+  companyId: number;
+  file: File;
+}) {
+  const res = await api.company[':id'].memorandum.$patch({
+    form: {
+      memorandum: data.file,
+    },
+    param: { id: data.companyId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function getStudentFeedbackTemplates() {
+  const res = await api['student-feedback'].$get();
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function createStudentFeedbackTemplate() {
+  const res = await api['student-feedback'].$post();
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function updateStudentFeedbackQuestions(data: {
+  templateId: number;
+  questions: string[];
+}) {
+  const res = await api['student-feedback'][':id'].questions.$patch({
+    json: { questions: data.questions },
+    param: { id: data.templateId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function studentFeedbackResponse(data: {
+  templateId: number;
+  signature: File;
+  feedback: Record<string, string>;
+  problemsMet?: string;
+  otherConcerns?: string;
+}) {
+  try {
+    const formData = new FormData();
+
+    // Add signature file
+    formData.append('signature', data.signature);
+
+    // Create a single JSON object with all the non-file data
+    const jsonData = {
+      templateId: data.templateId,
+      feedback: data.feedback,
+      problemsMet: data.problemsMet,
+      otherConcerns: data.otherConcerns,
+    };
+
+    formData.append('data', JSON.stringify(jsonData));
+
+    const res = await fetch(`/api/student-feedback/response`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Server error response:', errorText);
+      throw new Error(`Server error: ${errorText}`);
+    }
+
+    const json = await res.json();
+    return json;
+  } catch (error) {
+    console.error('Error in studentFeedbackResponse:', error);
+    throw error;
+  }
+}
+
+export async function getStudentOJTFeedbackResponses() {
+  const res = await api['student-feedback'].response.ojt.$get();
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function getSupervisorFeedbackResponses(data: { ojtId: number }) {
+  const res = await api['supervisor-feedback'].response.ojt[':ojtId'].$get({
+    param: { ojtId: data.ojtId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function sendSupervisorFeedbackEmail(data: { email: string }) {
+  const res = await api['supervisor-feedback'].email.$post({ json: data });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function verifySupervisorAccessCode(code: string) {
+  const res = await api['supervisor-feedback'].verify.$post({ json: { code } });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function createSupervisorFeedbackTemplate(data: {
+  studentSubmissionTemplateId: number;
+}) {
+  const res = await api['supervisor-feedback'].$post({ json: data });
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+  const json = await res.json();
+  return json;
+}
+
+export async function getSupervisorFeedbackTemplates() {
+  const res = await api['supervisor-feedback'].$get();
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function checkSupervisorFeedbackEmail() {
+  const res = await api['supervisor-feedback'].email.check.$get();
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function supervisorFeedbackResponse(data: {
+  templateId: number;
+  signature: File;
+  ojtId: number;
+  feedback: Record<string, string>;
+  otherCommentsAndSuggestions?: string;
+}) {
+  try {
+    const formData = new FormData();
+
+    // Add signature file
+    formData.append('signature', data.signature);
+    formData.append('ojtId', data.ojtId.toString());
+
+    // Create a single JSON object with all the non-file data
+    const jsonData = {
+      templateId: data.templateId,
+      feedback: data.feedback,
+      otherCommentsAndSuggestions: data.otherCommentsAndSuggestions,
+    };
+
+    formData.append('data', JSON.stringify(jsonData));
+
+    const res = await fetch(`/api/supervisor-feedback/response`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Server error response:', errorText);
+      throw new Error(`Server error: ${errorText}`);
+    }
+
+    const json = await res.json();
+    return json;
+  } catch (error) {
+    console.error('Error in supervisorFeedbackResponse:', error);
+    throw error;
+  }
+}
+
+export async function getAppraisalTemplates() {
+  const res = await api.appraisal.$get();
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+  const data = await res.json();
+  return data;
+}
+
+export async function createAppraisalTemplate(data: {
+  formTemplateId: number;
+}) {
+  const res = await api.appraisal.$post({ json: data });
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+  const json = await res.json();
+  return json;
+}
+
+export async function updateAppraisalCategories(data: {
+  templateId: number;
+  categories: Array<{
+    id?: number;
+    name: string;
+    displayOrder: number;
+  }>;
+}) {
+  const res = await api.appraisal[':id'].categories.$patch({
+    json: { categories: data.categories },
+    param: { id: data.templateId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function updateAppraisalQuestions(data: {
+  categoryId: number;
+  questions: string[];
+}) {
+  const res = await api.appraisal.category[':categoryId'].questions.$patch({
+    json: { questions: data.questions },
+    param: { categoryId: data.categoryId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function getAppraisalResponses(data: { ojtId: number }) {
+  const res = await api.appraisal.response.ojt[':ojtId'].$get({
+    param: { ojtId: data.ojtId.toString() },
+  });
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function sendAppraisalEmail(data: { email: string }) {
+  const res = await api.appraisal.email.$post({ json: data });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function verifyAppraisalAccessCode(code: string) {
+  const res = await api.appraisal.verify.$post({ json: { code } });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function checkAppraisalEmail() {
+  const res = await api.appraisal.email.check.$get();
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function appraisalResponse(data: {
+  templateId: number;
+  signature: File;
+  ojtId: number;
+  ratings: Record<string, number>;
+  comments?: string;
+}) {
+  try {
+    const formData = new FormData();
+
+    // Add signature file
+    formData.append('signature', data.signature);
+    formData.append('ojtId', data.ojtId.toString());
+
+    // Create a single JSON object with all the non-file data
+    const jsonData = {
+      templateId: data.templateId,
+      ratings: data.ratings,
+      comments: data.comments,
+    };
+
+    formData.append('data', JSON.stringify(jsonData));
+
+    const res = await fetch(`/api/appraisal/response`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Server error response:', errorText);
+      throw new Error(`Server error: ${errorText}`);
+    }
+
+    const json = await res.json();
+    return json;
+  } catch (error) {
+    console.error('Error in appraisalResponse:', error);
+    throw error;
+  }
+}
+
+export async function getAppraisalTemplate(id: number) {
+  const res = await api.appraisal[':id'].$get({
+    param: { id: id.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function submitAppraisalResponse(data: {
+  templateId: number;
+  signature: File;
+  ojtId: number;
+  ratings: Record<string, number>;
+  comments?: string;
+}) {
+  try {
+    const formData = new FormData();
+
+    // Add signature file
+    formData.append('signature', data.signature);
+    formData.append('ojtId', data.ojtId.toString());
+
+    // Create a single JSON object with all the non-file data
+    const jsonData = {
+      templateId: data.templateId,
+      ratings: data.ratings,
+      comments: data.comments,
+    };
+
+    formData.append('data', JSON.stringify(jsonData));
+
+    const res = await fetch(`/api/appraisal/response`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Server error response:', errorText);
+      throw new Error(`Server error: ${errorText}`);
+    }
+
+    const json = await res.json();
+    return json;
+  } catch (error) {
+    console.error('Error in submitAppraisalResponse:', error);
+    throw error;
+  }
+}
+
+export async function getAllFeedbackResponses(filters?: {
+  departmentId?: number;
+  programId?: number;
+}) {
+  try {
+    // Build URL with query parameters
+    let url = '/api/student-feedback/response/all';
+    if (filters) {
+      const params = new URLSearchParams();
+      if (filters.departmentId) {
+        params.append('departmentId', filters.departmentId.toString());
+      }
+      if (filters.programId) {
+        params.append('programId', filters.programId.toString());
+      }
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+    }
+
+    // Fetch student feedback responses with filters
+    const studentRes = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!studentRes.ok) {
+      throw new Error('Failed to fetch student feedback responses');
+    }
+    const studentData = await studentRes.json();
+
+    // Build URL for supervisor feedback with the same query parameters
+    let supervisorUrl = '/api/supervisor-feedback/response/all';
+    if (filters) {
+      const params = new URLSearchParams();
+      if (filters.departmentId) {
+        params.append('departmentId', filters.departmentId.toString());
+      }
+      if (filters.programId) {
+        params.append('programId', filters.programId.toString());
+      }
+      if (params.toString()) {
+        supervisorUrl += `?${params.toString()}`;
+      }
+    }
+
+    // Fetch supervisor feedback responses with filters
+    const supervisorRes = await fetch(supervisorUrl, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!supervisorRes.ok) {
+      throw new Error('Failed to fetch supervisor feedback responses');
+    }
+    const supervisorData = await supervisorRes.json();
+
+    return {
+      student: studentData,
+      supervisor: supervisorData,
+    };
+  } catch (error) {
+    console.error('Error fetching feedback responses:', error);
+    throw error;
+  }
+}
+
+export async function getUnansweredFeedback(filters?: {
+  departmentId?: number;
+  programId?: number;
+}) {
+  try {
+    // Build query parameters for student feedback
+    let studentParams = new URLSearchParams();
+    if (filters?.departmentId) {
+      studentParams.append('departmentId', filters.departmentId.toString());
+    }
+    if (filters?.programId) {
+      studentParams.append('programId', filters.programId.toString());
+    }
+
+    const studentUrl = `/api/student-feedback/response/unanswered${studentParams.toString() ? `?${studentParams.toString()}` : ''}`;
+
+    // Build query parameters for supervisor feedback
+    let supervisorParams = new URLSearchParams();
+    if (filters?.departmentId) {
+      supervisorParams.append('departmentId', filters.departmentId.toString());
+    }
+    if (filters?.programId) {
+      supervisorParams.append('programId', filters.programId.toString());
+    }
+
+    const supervisorUrl = `/api/supervisor-feedback/response/unanswered${supervisorParams.toString() ? `?${supervisorParams.toString()}` : ''}`;
+
+    // Make parallel requests
+    const [studentRes, supervisorRes] = await Promise.all([
+      fetch(studentUrl, {
+        method: 'GET',
+        credentials: 'include',
+      }),
+      fetch(supervisorUrl, {
+        method: 'GET',
+        credentials: 'include',
+      }),
+    ]);
+
+    if (!studentRes.ok) {
+      throw new Error('Failed to fetch unanswered student feedback data');
+    }
+
+    if (!supervisorRes.ok) {
+      throw new Error('Failed to fetch unanswered supervisor feedback data');
+    }
+
+    const studentData = await studentRes.json();
+    const supervisorData = await supervisorRes.json();
+
+    return {
+      student: studentData,
+      supervisor: supervisorData,
+    };
+  } catch (error) {
+    console.error('Error fetching unanswered feedback data:', error);
+    throw error;
+  }
+}
+
+export async function updateUserPassword(data: {
+  currentPassword: string;
+  newPassword: string;
+}) {
+  const res = await api.user['change-password'].$patch({
+    json: data,
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function updateStudentPersonalInfo(data: {
+  fullName: string;
+  gender: 'male' | 'female';
+  yearLevel: string;
+  semester: string;
+  totalOJTHours: number;
+}) {
+  const res = await api.student['personal-info'].$patch({
+    json: data,
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function updateStudentSupervisorInfo(data: {
+  supervisorName: string;
+  supervisorEmail: string;
+  supervisorContactNumber?: string | undefined;
+  supervisorAddress?: string | undefined;
+}) {
+  const res = await api.student['supervisor-info'].$patch({
+    json: data,
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function updateProfilePicture(data: { file: File }) {
+  const res = await api.user['profile-picture'].$patch({
+    form: { profilePicture: data.file },
+  });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function updateAdminOrCoordinatorPersonalInfo(data: {
+  fullName: string;
+  gender: 'male' | 'female';
+}) {
+  const res = await api.user['personal-info'].$patch({ json: data });
 
   if (!res.ok) {
     throw new Error('server error');

@@ -4,7 +4,6 @@ import { EditableTableCell } from '@/components/editable-table-cell';
 import PageHeaderText from '@/components/page-header-text';
 import Pagination from '@/components/pagination';
 import TableRowSkeleton from '@/components/table-row-skeleton';
-import AddFormDialog from '@/components/templates/add-form-dialog';
 import AddTemplateDialog from '@/components/templates/add-template-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,11 +37,11 @@ import {
   updateTemplateTitle,
 } from '@/lib/api';
 import { OJTCategory } from '@/lib/types';
-import { cn, toUpperCase } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { format } from 'date-fns';
-import { File, Loader2 } from 'lucide-react';
+import { Download, File, Loader2 } from 'lucide-react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -165,7 +164,7 @@ function RouteComponent() {
   if (error) return <p>Error</p>;
   return (
     <SidebarInset className='py-4 px-8 flex flex-col gap-4'>
-      <PageHeaderText>Forms & Templates</PageHeaderText>
+      <PageHeaderText>Requirements</PageHeaderText>
       <div className='flex w-full items-center justify-between'>
         <div className='flex items-center gap-3'>
           <Input
@@ -190,7 +189,6 @@ function RouteComponent() {
           </Select>
         </div>
         <div className='flex items-center gap-1'>
-          <AddFormDialog />
           <AddTemplateDialog />
         </div>
       </div>
@@ -202,7 +200,6 @@ function RouteComponent() {
                 <TableHead>
                   <DoubleClickTooltip text='Title' />
                 </TableHead>
-                <TableHead>Type</TableHead>
                 <TableHead>
                   <DoubleClickTooltip text='Category' />
                 </TableHead>
@@ -226,10 +223,7 @@ function RouteComponent() {
                       }>
                       {editingRowTitle === index ? (
                         <div
-                          className={cn(
-                            'flex items-center w-[250px] gap-1',
-                            template.type === 'form' && 'flex-col items-start',
-                          )}>
+                          className={cn('flex items-center w-[250px] gap-1')}>
                           <Tooltip>
                             <TooltipTrigger>
                               <Input
@@ -243,75 +237,41 @@ function RouteComponent() {
                             </TooltipTrigger>
                             <TooltipContent>Change Title</TooltipContent>
                           </Tooltip>
-                          {template.type === 'template' ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  disabled={updateFileMutation.isPending}
-                                  onClick={handleFileSelect}
-                                  size='icon'>
-                                  {updateFileMutation.isPending ? (
-                                    <Loader2 className='w-4 h-4 animate-spin' />
-                                  ) : (
-                                    <File />
-                                  )}
-                                  <Input
-                                    type='file'
-                                    ref={fileInputRef}
-                                    className='hidden'
-                                    onChange={(e) =>
-                                      handleFileChange(e, template.id)
-                                    }
-                                  />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Change File</TooltipContent>
-                            </Tooltip>
-                          ) : (
-                            <>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Input
-                                    defaultValue={template.formId!}
-                                    // onChange={(e) => setUpdateTitle(e.target.value)}
-                                    // onKeyDown={(e) =>
-                                    //   onUpdateTitle(e, { templateId: template.id })
-                                    // }
-                                    className='w-[200px]'
-                                  />
-                                </TooltipTrigger>
-                                <TooltipContent>Change Form ID</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Input
-                                    defaultValue={template.formUrl!}
-                                    // onChange={(e) => setUpdateTitle(e.target.value)}
-                                    // onKeyDown={(e) =>
-                                    //   onUpdateTitle(e, { templateId: template.id })
-                                    // }
-                                    className='w-[200px]'
-                                  />
-                                </TooltipTrigger>
-                                <TooltipContent>Change Form URL</TooltipContent>
-                              </Tooltip>
-                            </>
-                          )}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                disabled={updateFileMutation.isPending}
+                                onClick={handleFileSelect}
+                                size='icon'>
+                                {updateFileMutation.isPending ? (
+                                  <Loader2 className='w-4 h-4 animate-spin' />
+                                ) : (
+                                  <File />
+                                )}
+                                <Input
+                                  type='file'
+                                  ref={fileInputRef}
+                                  className='hidden'
+                                  onChange={(e) =>
+                                    handleFileChange(e, template.id)
+                                  }
+                                />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Change File</TooltipContent>
+                          </Tooltip>
                         </div>
-                      ) : (
+                      ) : template.fileUrl ? (
                         <Button variant='link' className='p-0' asChild>
-                          <Link
-                            to={
-                              template.type === 'template'
-                                ? template.fileUrl!
-                                : template.formUrl!
-                            }>
+                          <Link target='_blank' to={template.fileUrl}>
                             {template.title}
+                            <Download />
                           </Link>
                         </Button>
+                      ) : (
+                        template.title
                       )}
                     </EditableTableCell>
-                    <TableCell>{toUpperCase(template.type)}</TableCell>
                     <EditableTableCell
                       editing={editingRowCategory === index}
                       onToggleEditing={() =>

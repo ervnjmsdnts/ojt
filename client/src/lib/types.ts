@@ -3,11 +3,10 @@ export type OJTCategory = 'pre-ojt' | 'ojt' | 'post-ojt';
 export type OJTStatus = OJTCategory | 'completed';
 export type TemplateSubmission = {
   template: {
+    canStudentView: boolean;
+    isEmailToSupervisor: boolean;
     templateId: number;
     title: string;
-    type: 'form' | 'template';
-    formId: string | null;
-    formUrl: string | null;
     fileUrl: string | null;
     category: string;
     updatedAt: number | null;
@@ -15,8 +14,9 @@ export type TemplateSubmission = {
   submissions: {
     submissionId: number;
     submissionOJTId: number;
+    supervisorFeedbackResponseId: number | null;
+    appraisalResponseId: number | null;
     submittedFileUrl: string | null;
-    submittedGoogleForm: boolean | null;
     submissionRemark: string | null;
     submissionStatus: 'pending' | 'approved' | 'resubmit';
     submissionDate: number | null;

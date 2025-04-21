@@ -26,6 +26,8 @@ const registerSchema = z.object({
   registrationForm: z.instanceof(File),
   password: z.string().min(1),
   fullName: z.string().min(1),
+  yearLevel: z.string().min(1),
+  semester: z.string().min(1),
   gender: z.enum(['male', 'female']),
 });
 
@@ -86,6 +88,8 @@ export const authRoute = new Hono()
         await tx.insert(ojtApplication).values({
           studentId: result.insertId,
           classId,
+          yearLevel: user.yearLevel,
+          semester: user.semester,
           registrationFormUrl: url,
         });
       });

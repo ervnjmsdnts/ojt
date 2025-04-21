@@ -146,6 +146,7 @@ function RouteComponent() {
                 <TableHead>
                   <DoubleClickTooltip text='Full Name' />
                 </TableHead>
+                <TableHead>Email Address</TableHead>
                 <TableHead>
                   <DoubleClickTooltip text='Role' />
                 </TableHead>
@@ -180,6 +181,7 @@ function RouteComponent() {
                         user.fullName
                       )}
                     </EditableTableCell>
+                    <TableCell>{user.email}</TableCell>
                     {user.role === 'student' ? (
                       <TableCell>
                         <RoleBadge role='student' />

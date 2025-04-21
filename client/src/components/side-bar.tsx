@@ -21,6 +21,8 @@ import {
   GraduationCap,
   Presentation,
   UserPlus,
+  BarChart,
+  FileText,
 } from 'lucide-react';
 import React from 'react';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
@@ -31,12 +33,23 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { User } from '@server/sharedTypes';
-import { Avatar, AvatarFallback } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { api } from '@/lib/api';
+import { cn } from '@/lib/utils';
+import { useChat } from '@/context/ChatContext';
+import BSULogo from '@/assets/bsu-logo.png';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AppSidebar({ user }: { user: User }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { totalUnreadCount } = useChat();
+  const queryClient = useQueryClient();
+
+  // Get the latest user data from the cache
+  const currentUser =
+    queryClient.getQueryData<User>(['get-current-user']) || user;
+
   const items = [
     {
       title: 'Dashboard',
@@ -57,7 +70,7 @@ export default function AppSidebar({ user }: { user: User }) {
       roles: ['student', 'coordinator', 'admin'],
     },
     {
-      title: 'OJT Requirements',
+      title: 'OJTs',
       url: '/ojt',
       icon: ClipboardCheck,
       roles: ['student', 'coordinator', 'admin'],
@@ -69,7 +82,7 @@ export default function AppSidebar({ user }: { user: User }) {
       roles: ['student'],
     },
     {
-      title: 'Forms & Templates',
+      title: 'Requirements',
       url: '/templates',
       icon: ClipboardList,
       roles: ['coordinator', 'admin'],
@@ -98,6 +111,48 @@ export default function AppSidebar({ user }: { user: User }) {
       icon: Presentation,
       roles: ['coordinator', 'admin'],
     },
+    {
+      title: 'Form Charts',
+      url: '/form-charts',
+      icon: BarChart,
+      roles: ['coordinator', 'admin'],
+    },
+    {
+      title: 'Student Feedback Questions',
+      url: '/student-feedback-template',
+      icon: FileText,
+      roles: ['coordinator', 'admin'],
+    },
+    {
+      title: 'Supervisor Feedback Questions',
+      url: '/supervisor-feedback-template',
+      icon: FileText,
+      roles: ['coordinator', 'admin'],
+    },
+    {
+      title: 'Student Feedback Form',
+      url: '/student-feedback-form',
+      icon: FileText,
+      roles: ['student'],
+    },
+    {
+      title: 'Supervisor Feedback',
+      url: '/supervisor-feedback-email',
+      icon: FileText,
+      roles: ['student'],
+    },
+    {
+      title: 'Appraisal Questions',
+      url: '/appraisal-template',
+      icon: FileText,
+      roles: ['admin', 'coordinator'],
+    },
+    {
+      title: 'Appraisal Feedback',
+      url: '/appraisal-email',
+      icon: FileText,
+      roles: ['student'],
+    },
   ];
 
   const signOut = async () => {
@@ -109,7 +164,14 @@ export default function AppSidebar({ user }: { user: User }) {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Student Internship Portal</SidebarGroupLabel>
+          <SidebarGroupLabel className='mb-4'>
+            <div className='flex items-center gap-2'>
+              <img src={BSULogo} alt='BSU Logo' className='w-8' />
+              <p className='text-sidebar-foreground/70'>
+                Student Internship Portal
+              </p>
+            </div>
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -119,9 +181,30 @@ export default function AppSidebar({ user }: { user: User }) {
                       <SidebarMenuButton
                         asChild
                         isActive={item.url === location.pathname}>
-                        <Link to={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
+                        <Link
+                          to={item.url}
+                          className={cn(
+                            item.url === '/dashboard' &&
+                              'relative flex size-3 flex items-center justify-between',
+                          )}>
+                          {item.url === '/dashboard' ? (
+                            <div className='flex items-center gap-2'>
+                              <item.icon className='size-4' />
+                              <span>{item.title}</span>
+                            </div>
+                          ) : (
+                            <>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </>
+                          )}
+                          {item.url === '/dashboard' &&
+                            totalUnreadCount > 0 && (
+                              <div className='relative flex size-3'>
+                                <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75'></span>
+                                <span className='relative inline-flex size-3 rounded-full bg-sky-500'></span>
+                              </div>
+                            )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -138,15 +221,20 @@ export default function AppSidebar({ user }: { user: User }) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size='lg'>
-                  <Avatar className='h-8 w-8 rounded-lg grayscale'>
+                  <Avatar className='h-8 w-8 rounded-lg'>
+                    <AvatarImage
+                      src={currentUser.profilePictureUrl || undefined}
+                    />
                     <AvatarFallback className='rounded-full bg-gray-200'>
                       <User2 />
                     </AvatarFallback>
                   </Avatar>
                   <div className='grid flex-1 text-left text-sm leading-tight'>
-                    <span className='truncate font-medium'>{user.srCode}</span>
+                    <span className='truncate font-medium'>
+                      {currentUser.srCode}
+                    </span>
                     <span className='truncate text-xs text-muted-foreground'>
-                      {user.fullName}
+                      {currentUser.fullName}
                     </span>
                   </div>
                   <MoreVerticalIcon className='ml-auto size-4' />

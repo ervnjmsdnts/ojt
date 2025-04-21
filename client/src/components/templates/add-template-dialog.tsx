@@ -24,24 +24,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { Checkbox } from '../ui/checkbox';
 
 const schema = z.object({
-  file: z.instanceof(File),
+  file: z.instanceof(File).optional(),
   title: z.string().min(1),
   category: z.enum(['pre-ojt', 'ojt', 'post-ojt']),
+  isEmailToSupervisor: z.boolean().optional().default(false),
+  canStudentView: z.boolean().optional().default(true),
 });
 
 type Schema = z.infer<typeof schema>;
 
 async function createTemplate(data: Schema) {
-  const res = await api.template.$post({ form: data });
+  const res = await api.template.$post({
+    form: {
+      ...data,
+      canStudentView: String(data.canStudentView),
+      isEmailToSupervisor: String(data.isEmailToSupervisor),
+    },
+  });
   if (!res.ok) {
     throw new Error('server error');
   }
 }
 
 export default function AddTemplateDialog() {
-  const form = useForm<Schema>({ resolver: zodResolver(schema) });
+  const form = useForm<Schema>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      isEmailToSupervisor: false,
+      canStudentView: true,
+    },
+  });
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 
@@ -65,14 +80,14 @@ export default function AddTemplateDialog() {
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
-        <Button>Add Template</Button>
+        <Button>Add Requirement</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Template</DialogTitle>
+          <DialogTitle>Add Requirement</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-2'>
             <FormField
               control={form.control}
               name='category'
@@ -126,6 +141,40 @@ export default function AddTemplateDialog() {
                 </FormItem>
               )}
             />
+            {/* <div className='flex gap-2'> */}
+            <FormField
+              control={form.control}
+              name='isEmailToSupervisor'
+              render={({ field }) => (
+                <FormItem className='flex items-center space-y-0 space-x-3'>
+                  <FormControl className=''>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className='leading-0'>
+                    Email to Supervisor
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='canStudentView'
+              render={({ field }) => (
+                <FormItem className='flex items-center space-y-0 space-x-3'>
+                  <FormControl className=''>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className='leading-0'>Student can view</FormLabel>
+                </FormItem>
+              )}
+            />
+            {/* </div> */}
             <DialogFooter className='justify-end pt-4'>
               <DialogClose asChild>
                 <Button type='button' variant='outline'>

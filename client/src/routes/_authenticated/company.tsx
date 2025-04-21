@@ -18,14 +18,23 @@ import usePagination from '@/hooks/use-pagination';
 import {
   getCompaniesWithCount,
   updateCompanyName,
+  updateCompanyAddress,
+  updateCompanyFile,
   userQueryOptions,
 } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { CSVLink } from 'react-csv';
 import DoubleClickTooltip from '@/components/double-click-tooltip';
+import ViewMemorandumDialog from '@/components/companies/view-memorandum-dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { File, Loader2 } from 'lucide-react';
 
 export const Route = createFileRoute('/_authenticated/company')({
   beforeLoad: async ({ context }) => {
@@ -44,7 +53,9 @@ type CompanyWithCount = {
   id: number;
   name: string;
   maleCount: number;
+  address?: string;
   femaleCount: number;
+  memorandumUrl: string | null;
 };
 
 function RouteComponent() {
@@ -60,12 +71,59 @@ function RouteComponent() {
 
   const queryClient = useQueryClient();
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [filterName, setFilterName] = useState('');
 
   const [updateName, setUpdateName] = useState('');
+  const [updateAddress, setUpdateAddress] = useState('');
   const [editingRow, setEditingRow] = useState<number | null>(null);
+  const [editingMemorandum, setEditingMemorandum] = useState<number | null>(
+    null,
+  );
+  const [editingAddress, setEditingAddress] = useState<number | null>(null);
 
   const updateNameMutation = useMutation({ mutationFn: updateCompanyName });
+  const updateFileMutation = useMutation({ mutationFn: updateCompanyFile });
+  const updateAddressMutation = useMutation({
+    mutationFn: updateCompanyAddress,
+  });
+
+  function handleFileSelect() {
+    fileInputRef.current?.click();
+  }
+
+  async function handleFileChange(
+    e: React.ChangeEvent<HTMLInputElement>,
+    companyId: number,
+  ) {
+    e.preventDefault();
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    if (selectedFile.type !== 'application/pdf') {
+      toast.error('Only PDF files are allowed');
+      return;
+    }
+
+    updateFileMutation.mutate(
+      { companyId, file: selectedFile },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['companies'] });
+          toast.success('Memorandum updated successfully');
+        },
+        onError: (error) => {
+          console.log(error);
+          toast.error('Failed to update memorandum');
+        },
+        onSettled: () => {
+          setEditingMemorandum(null);
+          e.target.value = '';
+        },
+      },
+    );
+  }
 
   const onUpdateName = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>, data: { companyId: number }) => {
@@ -86,6 +144,27 @@ function RouteComponent() {
       }
     },
     [updateName],
+  );
+
+  const onUpdateAddress = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>, data: { companyId: number }) => {
+      if (e.key === 'Enter') {
+        if (!updateAddress) {
+          return toast.error('Address cannot be empty');
+        }
+        updateAddressMutation.mutate(
+          { companyId: data.companyId, address: updateAddress },
+          {
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: ['companies'] });
+              setEditingAddress(null);
+              toast.success('Company address updated successfully');
+            },
+          },
+        );
+      }
+    },
+    [updateAddress],
   );
 
   const filteredCompanies = useMemo(() => {
@@ -117,7 +196,12 @@ function RouteComponent() {
   );
 
   const { currentItems, paginate, currentPage, totalPages } =
-    usePagination<CompanyWithCount>(filteredCompanies);
+    usePagination<CompanyWithCount>(
+      filteredCompanies.map((company) => ({
+        ...company,
+        address: company.address ?? undefined,
+      })),
+    );
 
   const isAdminOrCoordinator = user?.role !== 'student';
 
@@ -155,6 +239,20 @@ function RouteComponent() {
                     'Name'
                   )}
                 </TableHead>
+                <TableHead>
+                  {isAdminOrCoordinator ? (
+                    <DoubleClickTooltip text='Address' />
+                  ) : (
+                    'Address'
+                  )}
+                </TableHead>
+                <TableHead>
+                  {isAdminOrCoordinator ? (
+                    <DoubleClickTooltip text='Memorandum' />
+                  ) : (
+                    'Memorandum'
+                  )}
+                </TableHead>
                 {isAdminOrCoordinator && (
                   <>
                     <TableHead>Male Count</TableHead>
@@ -170,7 +268,7 @@ function RouteComponent() {
               ) : (
                 currentItems.map((company, index) => (
                   <TableRow key={company.id}>
-                    {user?.role !== 'student' ? (
+                    {isAdminOrCoordinator ? (
                       <EditableTableCell
                         editing={editingRow === index}
                         onToggleEditing={() =>
@@ -191,6 +289,75 @@ function RouteComponent() {
                       </EditableTableCell>
                     ) : (
                       <TableCell>{company.name}</TableCell>
+                    )}
+                    {isAdminOrCoordinator ? (
+                      <EditableTableCell
+                        editing={editingAddress === index}
+                        onToggleEditing={() =>
+                          setEditingAddress(
+                            editingAddress === index ? null : index,
+                          )
+                        }>
+                        {editingAddress === index ? (
+                          <Input
+                            defaultValue={company.address}
+                            onChange={(e) => setUpdateAddress(e.target.value)}
+                            onKeyDown={(e) =>
+                              onUpdateAddress(e, { companyId: company.id })
+                            }
+                          />
+                        ) : (
+                          company.address
+                        )}
+                      </EditableTableCell>
+                    ) : (
+                      <TableCell>{company.address}</TableCell>
+                    )}
+                    {isAdminOrCoordinator ? (
+                      <EditableTableCell
+                        editing={editingMemorandum === index}
+                        onToggleEditing={() =>
+                          setEditingMemorandum(
+                            editingMemorandum === index ? null : index,
+                          )
+                        }>
+                        {editingMemorandum === index ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                disabled={updateFileMutation.isPending}
+                                onClick={handleFileSelect}
+                                size='icon'>
+                                {updateFileMutation.isPending ? (
+                                  <Loader2 className='w-4 h-4 animate-spin' />
+                                ) : (
+                                  <File />
+                                )}
+                                <Input
+                                  type='file'
+                                  ref={fileInputRef}
+                                  accept='.pdf,application/pdf'
+                                  className='hidden'
+                                  onChange={(e) =>
+                                    handleFileChange(e, company.id)
+                                  }
+                                />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Change File</TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <ViewMemorandumDialog
+                            memorandumUrl={company.memorandumUrl}
+                          />
+                        )}
+                      </EditableTableCell>
+                    ) : (
+                      <TableCell>
+                        <ViewMemorandumDialog
+                          memorandumUrl={company.memorandumUrl}
+                        />
+                      </TableCell>
                     )}
                     {isAdminOrCoordinator && (
                       <>

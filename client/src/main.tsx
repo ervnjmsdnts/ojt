@@ -10,6 +10,7 @@ const queryClient = new QueryClient();
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 import { TooltipProvider } from './components/ui/tooltip';
+import { ChatProvider } from './context/ChatContext';
 
 // Create a new router instance
 const router = createRouter({ routeTree, context: { queryClient } });
@@ -28,8 +29,10 @@ root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <RouterProvider router={router} />
-        <Toaster richColors />
+        <ChatProvider>
+          <RouterProvider router={router} />
+          <Toaster richColors />
+        </ChatProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </StrictMode>,

@@ -11,26 +11,64 @@ import {
 import { db } from '../db';
 import { asc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { uploadFile } from '../lib/cloudinary';
 
 const updateCompanyNameSchema = z.object({
   name: z.string().min(1),
 });
 
+const createCompanySchema = z.object({
+  name: z.string().min(1),
+  memorandum: z
+    .union([
+      z.instanceof(File),
+      z.null(),
+      z.undefined(),
+      z.string().transform((val) => (val === '' ? undefined : val)),
+    ])
+    .transform((val) => (val instanceof File ? val : null)),
+  address: z.string().min(1),
+});
+
+const updateCompanyMemorandumSchema = z.object({
+  memorandum: z.instanceof(File),
+});
+
+const updateCompanyAddressSchema = z.object({
+  address: z.string().min(1),
+});
+
 const assignCompanyToOJTSchema = z.object({
   companyId: z.number().min(1),
   supervisorEmail: z.string().email().min(1),
+  totalOJTHours: z.number().min(1),
+  supervisorName: z.string().min(1),
+  supervisorContactNumber: z.string().min(1),
+  supervisorAddress: z.string().min(1),
 });
 
 export const companyRoutes = new Hono()
   .post(
     '/',
-    requireRole(['admin']),
-    zValidator('json', insertCompanySchema),
+    requireRole(['admin', 'coordinator']),
+    zValidator('form', createCompanySchema),
     async (c) => {
       try {
-        const data = c.req.valid('json');
+        const data = c.req.valid('form');
 
-        await db.insert(companies).values(data);
+        let memorandumUrl = null;
+
+        const file = data.memorandum;
+        if (file) {
+          const { url } = await uploadFile(file);
+          memorandumUrl = url;
+        }
+
+        await db.insert(companies).values({
+          name: data.name,
+          address: data.address,
+          memorandumUrl: memorandumUrl ?? null,
+        });
 
         return c.json({ message: 'Created company' }, 201);
       } catch (error) {
@@ -55,7 +93,11 @@ export const companyRoutes = new Hono()
 
         const [result] = await db
           .update(companies)
-          .set(data)
+          .set({
+            name: data.name,
+            address: data.address,
+            memorandumUrl: data.memorandumUrl ?? null,
+          })
           .where(eq(companies.id, id));
 
         if (result.affectedRows === 0) {
@@ -81,6 +123,8 @@ export const companyRoutes = new Hono()
         .select({
           id: companies.id,
           name: companies.name,
+          address: companies.address,
+          memorandumUrl: companies.memorandumUrl,
           maleCount: maleCountExpr,
           femaleCount: femaleCountExpr,
           totalStudents: totalStudentsExpr,
@@ -128,6 +172,77 @@ export const companyRoutes = new Hono()
       }
     },
   )
+  .patch(
+    '/:id/memorandum',
+    requireRole(['admin', 'coordinator']),
+    zValidator('form', updateCompanyMemorandumSchema),
+    async (c) => {
+      try {
+        const idParam = c.req.param('id');
+        const id = Number(idParam);
+
+        if (isNaN(id)) {
+          return c.json({ message: 'Invalid company id provided' }, 400);
+        }
+
+        const data = c.req.valid('form');
+
+        let memorandumUrl = null;
+
+        const file = data.memorandum;
+        if (file) {
+          const { url } = await uploadFile(file);
+          memorandumUrl = url;
+        }
+
+        const [result] = await db
+          .update(companies)
+          .set({ memorandumUrl: memorandumUrl ?? null })
+          .where(eq(companies.id, id));
+
+        if (result.affectedRows === 0) {
+          return c.json({ message: 'Company not found' }, 404);
+        }
+
+        return c.json({ message: 'Company memorandum updated successfully' });
+      } catch (error) {
+        console.error(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .patch(
+    '/:id/address',
+    requireRole(['admin', 'coordinator']),
+    zValidator('json', updateCompanyAddressSchema),
+    async (c) => {
+      try {
+        const idParam = c.req.param('id');
+        const id = Number(idParam);
+
+        if (isNaN(id)) {
+          return c.json({ message: 'Invalid company id provided' }, 400);
+        }
+
+        const data = c.req.valid('json');
+
+        const [result] = await db
+          .update(companies)
+          .set({ address: data.address })
+          .where(eq(companies.id, id));
+
+        if (result.affectedRows === 0) {
+          return c.json({ message: 'Company not found' }, 404);
+        }
+
+        return c.json({ message: 'Company address updated successfully' });
+      } catch (error) {
+        console.error(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+
   .post(
     '/assign',
     requireRole(['student']),
@@ -156,6 +271,10 @@ export const companyRoutes = new Hono()
           .set({
             companyId: data.companyId,
             supervisorEmail: data.supervisorEmail,
+            totalOJTHours: data.totalOJTHours,
+            supervisorName: data.supervisorName,
+            supervisorContactNumber: data.supervisorContactNumber,
+            supervisorAddress: data.supervisorAddress,
           })
           .where(eq(ojtApplication.id, ojt.id));
 

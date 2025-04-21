@@ -9,10 +9,9 @@ import {
 import TableRowSkeleton from '../table-row-skeleton';
 import { Button } from '../ui/button';
 import { TemplateSubmission } from '@/lib/types';
-import { cn, toUpperCase } from '@/lib/utils';
-import { Link } from '@tanstack/react-router';
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Download, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import SubmissionStatusBadge from '../submission-status-badge';
 import DoubleClickTooltip from '../double-click-tooltip';
 import { useCallback, useState } from 'react';
@@ -32,7 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-
+import ViewStudentSubmissionPDFDialog from './view-student-submission-pdf-dialog';
+import ViewSupervisorFeedbackDialog from './view-supervisor-feedback-dialog';
+import ViewAppraisalDialog from './view-appraisal-dialog';
 export default function SubmissionsTableAdmin({
   isPending,
   data,
@@ -95,7 +96,6 @@ export default function SubmissionsTableAdmin({
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
-          <TableHead>Type</TableHead>
           <TableHead>Submissions</TableHead>
         </TableRow>
       </TableHeader>
@@ -106,7 +106,6 @@ export default function SubmissionsTableAdmin({
           data?.map((ojt) => (
             <TableRow key={ojt.template.templateId}>
               <TableCell>{ojt.template.title}</TableCell>
-              <TableCell>{toUpperCase(ojt.template.type)}</TableCell>
               <TableCell className={cn(ojt.submissions.length > 0 && 'p-0')}>
                 {ojt.submissions.length === 0 ? (
                   <p>No submissions</p>
@@ -197,17 +196,19 @@ export default function SubmissionsTableAdmin({
                             )}
                           </EditableTableCell>
                           <TableCell>
-                            {ojt.template.type === 'form' ? (
-                              <Button size='icon'>
-                                <Eye />
-                              </Button>
+                            {submission.supervisorFeedbackResponseId ? (
+                              <ViewSupervisorFeedbackDialog
+                                ojtId={submission.submissionOJTId}
+                              />
+                            ) : submission.appraisalResponseId ? (
+                              <ViewAppraisalDialog
+                                ojtId={submission.submissionOJTId}
+                              />
                             ) : (
                               submission.submittedFileUrl && (
-                                <Button asChild size='icon'>
-                                  <Link to={submission.submittedFileUrl}>
-                                    <Download />
-                                  </Link>
-                                </Button>
+                                <ViewStudentSubmissionPDFDialog
+                                  submissionUrl={submission.submittedFileUrl}
+                                />
                               )
                             )}
                           </TableCell>

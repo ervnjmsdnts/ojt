@@ -1,16 +1,29 @@
 import { Hono } from 'hono';
 import { requireRole } from '../middlewares/role';
 import { zValidator } from '@hono/zod-validator';
-import { formTemplates, insertFormTemplateSchema, users } from '../db/schema';
+import { formTemplates, users } from '../db/schema';
 import { uploadFile } from '../lib/cloudinary';
 import { db } from '../db';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-const createTemplateSchema = insertFormTemplateSchema.omit({
-  fileUrl: true,
-  uploadedBy: true,
-  type: true,
+const createTemplateSchema = z.object({
+  title: z.string().min(1),
+  category: z.enum(['pre-ojt', 'ojt', 'post-ojt']),
+  canStudentView: z
+    .union([z.boolean(), z.enum(['true', 'false'])])
+    .transform((val) => (typeof val === 'string' ? val === 'true' : val)),
+  isEmailToSupervisor: z
+    .union([z.boolean(), z.enum(['true', 'false'])])
+    .transform((val) => (typeof val === 'string' ? val === 'true' : val)),
+  file: z
+    .union([
+      z.instanceof(File),
+      z.null(),
+      z.undefined(),
+      z.string().transform((val) => (val === '' ? undefined : val)),
+    ])
+    .transform((val) => (val instanceof File ? val : null)),
 });
 
 const updateCategorySchema = z.object({
@@ -36,50 +49,23 @@ export const templateRoutes = new Hono()
 
         const data = c.req.valid('form');
 
-        const form = await c.req.formData();
-        const file = form.get('file') as File;
+        let file = null;
 
-        const { url } = await uploadFile(file);
+        if (data.file) {
+          const { url } = await uploadFile(data.file);
+          file = url;
+        }
 
         await db.insert(formTemplates).values({
-          type: 'template',
           title: data.title,
           category: data.category,
-          fileUrl: url,
+          fileUrl: file,
           uploadedBy: userId,
+          canStudentView: data.canStudentView,
+          isEmailToSupervisor: data.isEmailToSupervisor,
         });
 
         return c.json({ message: 'Template created' }, 201);
-      } catch (error) {
-        console.log(error);
-        return c.json({ message: 'something went wrong' }, 400);
-      }
-    },
-  )
-  .post(
-    '/form',
-    requireRole(['coordinator', 'admin']),
-    zValidator('json', createTemplateSchema),
-    async (c) => {
-      try {
-        const userId = c.get('userId');
-
-        if (!userId) {
-          return c.json({ message: 'Unauthorized' }, 401);
-        }
-
-        const data = c.req.valid('json');
-
-        await db.insert(formTemplates).values({
-          type: 'form',
-          title: data.title,
-          category: data.category,
-          formId: data.formId,
-          formUrl: data.formUrl,
-          uploadedBy: userId,
-        });
-
-        return c.json({ message: 'Form created' }, 201);
       } catch (error) {
         console.log(error);
         return c.json({ message: 'something went wrong' }, 400);
@@ -98,11 +84,8 @@ export const templateRoutes = new Hono()
         .select({
           id: formTemplates.id,
           title: formTemplates.title,
-          type: formTemplates.type,
           category: formTemplates.category,
           fileUrl: formTemplates.fileUrl,
-          formId: formTemplates.formId,
-          formUrl: formTemplates.formUrl,
           uploadedBy: {
             id: users.id,
             fullName: users.fullName,

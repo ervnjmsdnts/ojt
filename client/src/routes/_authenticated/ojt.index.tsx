@@ -3,7 +3,7 @@ import OJTStudent from '@/components/ojt/ojt-student';
 import { userQueryOptions } from '@/lib/api';
 import { createFileRoute } from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_authenticated/ojt')({
+export const Route = createFileRoute('/_authenticated/ojt/')({
   beforeLoad: async ({ context }) => {
     const queryClient = context.queryClient;
     try {

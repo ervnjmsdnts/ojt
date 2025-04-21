@@ -10,22 +10,16 @@ import {
 import TableRowSkeleton from '../table-row-skeleton';
 import { Button } from '../ui/button';
 import { Link } from '@tanstack/react-router';
-import { toUpperCase } from '@/lib/utils';
-import {
-  Download,
-  Eye,
-  FileUp,
-  Loader2,
-  SquareArrowUpRight,
-} from 'lucide-react';
+import { Download, FileUp, Info, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { Input } from '../ui/input';
-import { useRef } from 'react';
+import { useMemo, createRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fileSubmission } from '@/lib/api';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import SubmissionStatusBadge from '../submission-status-badge';
+import ViewStudentSubmissionPDFDialog from './view-student-submission-pdf-dialog';
 
 export default function SubmissionTableStudent({
   isPending,
@@ -35,9 +29,18 @@ export default function SubmissionTableStudent({
   data?: TemplateSubmission[];
 }) {
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const handleFileSelect = () => {
-    fileInputRef.current?.click();
+
+  // Create a map of refs for each template
+  const fileInputRefs = useMemo(() => {
+    const refs: Record<number, React.RefObject<HTMLInputElement | null>> = {};
+    data?.forEach((ojt) => {
+      refs[ojt.template.templateId] = createRef<HTMLInputElement>();
+    });
+    return refs;
+  }, [data]);
+
+  const handleFileSelect = (templateId: number) => {
+    fileInputRefs[templateId]?.current?.click();
   };
 
   const fileSubmissionMutation = useMutation({ mutationFn: fileSubmission });
@@ -49,6 +52,11 @@ export default function SubmissionTableStudent({
     e.preventDefault();
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
+
+    if (selectedFile.type !== 'application/pdf') {
+      toast.error('File must be a PDF');
+      return;
+    }
 
     fileSubmissionMutation.mutate(
       { templateId, file: selectedFile },
@@ -73,7 +81,6 @@ export default function SubmissionTableStudent({
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
-          <TableHead>Type</TableHead>
           <TableHead>Submissions</TableHead>
         </TableRow>
       </TableHeader>
@@ -84,9 +91,9 @@ export default function SubmissionTableStudent({
           data?.map((ojt) => (
             <TableRow key={ojt.template.templateId}>
               <TableCell>
-                {ojt.template.type === 'template' ? (
+                {ojt.template.fileUrl ? (
                   <Button variant='link' className='p-0' asChild>
-                    <Link target='_blank' to={ojt.template.fileUrl!}>
+                    <Link target='_blank' to={ojt.template.fileUrl}>
                       {ojt.template.title}
                       <Download />
                     </Link>
@@ -95,45 +102,36 @@ export default function SubmissionTableStudent({
                   ojt.template.title
                 )}
               </TableCell>
-              <TableCell>{toUpperCase(ojt.template.type)}</TableCell>
               <TableCell>
-                {ojt.submissions.length === 0 &&
-                ojt.template.type === 'template' ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        disabled={fileSubmissionMutation.isPending}
-                        onClick={handleFileSelect}
-                        size='icon'>
-                        {fileSubmissionMutation.isPending ? (
-                          <Loader2 className='w-4 h-4 animate-spin' />
-                        ) : (
-                          <FileUp />
-                        )}
-                        <Input
-                          type='file'
-                          ref={fileInputRef}
-                          className='hidden'
-                          onChange={(e) =>
-                            handleFileChange(e, ojt.template.templateId)
+                {ojt.submissions.length === 0 ? (
+                  !ojt.template.isEmailToSupervisor && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          disabled={fileSubmissionMutation.isPending}
+                          onClick={() =>
+                            handleFileSelect(ojt.template.templateId)
                           }
-                        />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Upload</TooltipContent>
-                  </Tooltip>
-                ) : ojt.submissions.length === 0 &&
-                  ojt.template.type === 'form' ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button size='icon' asChild>
-                        <Link target='_blank' to={ojt.template.formUrl!}>
-                          <SquareArrowUpRight />
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Navigate</TooltipContent>
-                  </Tooltip>
+                          size='icon'>
+                          {fileSubmissionMutation.isPending ? (
+                            <Loader2 className='w-4 h-4 animate-spin' />
+                          ) : (
+                            <FileUp />
+                          )}
+                          <Input
+                            type='file'
+                            accept='application/pdf'
+                            ref={fileInputRefs[ojt.template.templateId]}
+                            className='hidden'
+                            onChange={(e) =>
+                              handleFileChange(e, ojt.template.templateId)
+                            }
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Upload</TooltipContent>
+                    </Tooltip>
+                  )
                 ) : (
                   <Table>
                     <TableHeader>
@@ -157,19 +155,27 @@ export default function SubmissionTableStudent({
                             />
                           </TableCell>
                           <TableCell>
-                            {ojt.template.type === 'form' ? (
-                              <Button size='icon'>
-                                <Eye />
-                              </Button>
+                            {submission.supervisorFeedbackResponseId ||
+                            submission.appraisalResponseId ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button size='icon'>
+                                    <Info className='w-4 h-4' />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Only coordinator can view the feedback
+                                </TooltipContent>
+                              </Tooltip>
                             ) : (
                               <div className='flex items-center gap-2'>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Button asChild size='icon'>
-                                      <Link to={submission.submittedFileUrl!}>
-                                        <Download />
-                                      </Link>
-                                    </Button>
+                                    <ViewStudentSubmissionPDFDialog
+                                      submissionUrl={
+                                        submission.submittedFileUrl!
+                                      }
+                                    />
                                   </TooltipTrigger>
                                   <TooltipContent>Download</TooltipContent>
                                 </Tooltip>
@@ -184,7 +190,11 @@ export default function SubmissionTableStudent({
                                           submission.submissionStatus ===
                                             'pending'
                                         }
-                                        onClick={handleFileSelect}
+                                        onClick={() =>
+                                          handleFileSelect(
+                                            ojt.template.templateId,
+                                          )
+                                        }
                                         size='icon'>
                                         {fileSubmissionMutation.isPending ? (
                                           <Loader2 className='w-4 h-4 animate-spin' />
@@ -193,7 +203,12 @@ export default function SubmissionTableStudent({
                                         )}
                                         <Input
                                           type='file'
-                                          ref={fileInputRef}
+                                          ref={
+                                            fileInputRefs[
+                                              ojt.template.templateId
+                                            ]
+                                          }
+                                          accept='application/pdf'
                                           className='hidden'
                                           onChange={(e) =>
                                             handleFileChange(

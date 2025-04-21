@@ -2,6 +2,7 @@ import AppSidebar from '@/components/side-bar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { userOJTOptions, userQueryOptions } from '@/lib/api';
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context }) => {
@@ -29,7 +30,16 @@ export const Route = createFileRoute('/_authenticated')({
 });
 
 function RouteComponent() {
-  const { user } = Route.useRouteContext();
+  const { user: initialUser } = Route.useRouteContext();
+
+  // Keep the user data fresh by using useQuery to access the latest data
+  const { data: latestUser } = useQuery({
+    ...userQueryOptions,
+    initialData: initialUser,
+  });
+
+  // Use the latest user data
+  const user = latestUser || initialUser;
 
   return (
     <>

@@ -20,15 +20,23 @@ import { toast } from 'sonner';
 
 const schema = z.object({
   name: z.string().min(1),
+  address: z.string().min(1),
+  memorandum: z.instanceof(File).optional(),
 });
 
 type Schema = z.infer<typeof schema>;
 
 async function createCompany(data: Schema) {
-  const res = await api.company.$post({ json: data });
+  if (data.memorandum && data.memorandum.type !== 'application/pdf') {
+    throw new Error('Only PDF files are allowed');
+  }
+  const res = await api.company.$post({
+    form: data,
+  });
   if (!res.ok) {
     throw new Error('server error');
   }
+  return res.json();
 }
 
 export default function AddCompanyDialog() {
@@ -48,7 +56,7 @@ export default function AddCompanyDialog() {
       },
       onError: (error) => {
         console.log('COMPANY ERROR:', error);
-        toast.error('Failed to create company');
+        toast.error(error.message);
       },
     });
   };
@@ -70,6 +78,37 @@ export default function AddCompanyDialog() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='memorandum'
+              render={({ field: { value, onChange, ...fieldProps } }) => (
+                <FormItem>
+                  <FormLabel>Memorandum</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...fieldProps}
+                      type='file'
+                      accept='.pdf,application/pdf'
+                      onChange={(e) =>
+                        onChange(e.target.files && e.target.files[0])
+                      }
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='address'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>

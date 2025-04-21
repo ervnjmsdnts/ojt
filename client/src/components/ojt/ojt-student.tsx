@@ -24,7 +24,7 @@ export default function OJTStudent() {
 
   return (
     <SidebarInset className='py-4 px-8 flex flex-col gap-4'>
-      <PageHeaderText>OJT Requirements</PageHeaderText>
+      <PageHeaderText>My OJT</PageHeaderText>
       <div className='flex-1 flex flex-col gap-3 justify-between'>
         <section className='flex-1 flex flex-col gap-2 min-h-0'>
           <h3 className='font-semibold'>Pre-OJT</h3>

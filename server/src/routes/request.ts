@@ -109,6 +109,7 @@ export const requestRoutes = new Hono()
         .select({
           id: studentCoordinatorRequest.id,
           status: studentCoordinatorRequest.status,
+          registrationFormUrl: ojtApplication.registrationFormUrl,
           createdAt: studentCoordinatorRequest.createdAt,
           student: {
             fullName: studentAlias.fullName,
@@ -118,6 +119,10 @@ export const requestRoutes = new Hono()
           },
         })
         .from(studentCoordinatorRequest)
+        .innerJoin(
+          ojtApplication,
+          eq(studentCoordinatorRequest.studentId, ojtApplication.studentId),
+        )
         .innerJoin(
           studentAlias,
           eq(studentCoordinatorRequest.studentId, studentAlias.id),

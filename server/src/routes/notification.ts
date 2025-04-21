@@ -9,7 +9,7 @@ import { zValidator } from '@hono/zod-validator';
 const createGlobalNotificationSchema = z.object({ message: z.string().min(1) });
 const createStudentNotificationSchema = z.object({
   message: z.string().min(1),
-  targetStudentId: z.number().min(1), // Update to include multiple students
+  targetStudentIds: z.array(z.number().min(1)).min(1),
 });
 
 export const notificationRoutes = new Hono()
@@ -38,17 +38,17 @@ export const notificationRoutes = new Hono()
             throw new Error('Failed to create notification');
           }
 
-          // const students = await tx
-          //   .select({ id: users.id })
-          //   .from(users)
-          //   .where(eq(users.role, 'student'));
+          const students = await tx
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.role, 'student'));
 
-          // const joinRecords = students.map((student) => ({
-          //   notificationId: globalNotification.id,
-          //   studentId: student.id,
-          // }));
+          const joinRecords = students.map((student) => ({
+            notificationId: globalNotification.id,
+            studentId: student.id,
+          }));
 
-          // await db.insert(notificationRecipients).values(joinRecords);
+          await tx.insert(notificationRecipients).values(joinRecords);
         });
 
         return c.json(
@@ -76,7 +76,7 @@ export const notificationRoutes = new Hono()
           const [result] = await tx.insert(notifications).values({
             message: data.message,
             isGlobal: false,
-            targetStudentId: data.targetStudentId,
+            targetStudentId: null,
           });
 
           const [notification] = await tx
@@ -89,14 +89,17 @@ export const notificationRoutes = new Hono()
             throw new Error('Failed to create notification');
           }
 
-          await tx.insert(notificationRecipients).values({
+          // Create notification recipients for each student
+          const recipientRecords = data.targetStudentIds.map((studentId) => ({
             notificationId: notification.id,
-            studentId: data.targetStudentId,
-          });
+            studentId: studentId,
+          }));
+
+          await tx.insert(notificationRecipients).values(recipientRecords);
         });
 
         return c.json(
-          { message: 'Student-specific notification created.' },
+          { message: 'Student-specific notifications created.' },
           201,
         );
       } catch (error) {
