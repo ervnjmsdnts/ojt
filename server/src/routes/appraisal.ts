@@ -825,7 +825,8 @@ export const appraisalRoutes = new Hono()
         accessCode: accessCode,
       });
 
-      const appraisalUrl = `http://localhost:5173/appraisal?code=${accessCode}`;
+      // LocalHost
+      const appraisalUrl = `https://d71d-136-158-67-3.ngrok-free.app/appraisal?code=${accessCode}`;
 
       const emailElement = React.createElement(AppraisalEmailTemplate, {
         studentName: student.fullName,

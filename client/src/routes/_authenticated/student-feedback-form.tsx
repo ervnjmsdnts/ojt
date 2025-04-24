@@ -317,14 +317,16 @@ input[type="radio"]:disabled{
           </AlertDescription>
         </Alert>
       )}
-      <div className='flex justify-end'>
-        <Button
-          className='flex items-center gap-2 w-fit'
-          onClick={() => handlePrint()}>
-          <Printer className='w-4 h-4' />
-          Print Form
-        </Button>
-      </div>
+      {hasExistingResponse && (
+        <div className='flex justify-end'>
+          <Button
+            className='flex items-center gap-2 w-fit'
+            onClick={() => handlePrint()}>
+            <Printer className='w-4 h-4' />
+            Print Form
+          </Button>
+        </div>
+      )}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

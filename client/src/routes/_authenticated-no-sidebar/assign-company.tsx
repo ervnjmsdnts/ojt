@@ -10,7 +10,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -42,13 +41,11 @@ export const Route = createFileRoute(
   beforeLoad: async ({ context }) => {
     const queryClient = context.queryClient;
     let ojt = null;
-
     try {
       ojt = await queryClient.fetchQuery(userOJTOptions);
     } catch (error) {
       ojt = null;
     }
-
     if (ojt && ojt.companyId) throw redirect({ to: '/dashboard' });
   },
   component: RouteComponent,

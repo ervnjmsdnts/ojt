@@ -22,7 +22,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { api, userQueryOptions } from '@/lib/api';
 import { toast } from 'sonner';
-import BSULogo from '@/assets/bsu-logo.png';
+import Banner from '@/assets/banner.png';
 
 export const Route = createFileRoute('/')({
   beforeLoad: async ({ context }) => {
@@ -78,63 +78,61 @@ function Index() {
   };
 
   return (
-    <div className='grid place-items-center p-2 h-screen'>
-      <Card className='max-w-md w-full'>
-        <CardHeader>
-          <div className='flex flex-col justify-center items-center gap-2'>
-            <img src={BSULogo} alt='BSU Logo' className='w-24' />
-            <div className='flex flex-col items-center gap-1'>
-              <p className='font-semibold text-lg'>Batangas State University</p>
-              <p className='text-sm'>Student Internship Portal</p>
-            </div>
-          </div>
-          <CardTitle className='text-xl pt-4'>Login</CardTitle>
-          <CardDescription>Enter your credentials</CardDescription>
-        </CardHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name='srCode'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='password'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type='password' {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-            <CardFooter className='w-full flex-col'>
-              <Button className='w-full'>Login</Button>
-              <p className='text-sm pt-2'>
-                Don&apos;t have an account?{' '}
-                <Button
-                  variant='link'
-                  type='button'
-                  className='p-0'
-                  onClick={() => navigate({ to: '/register' })}>
-                  Register
-                </Button>
-              </p>
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
+    <div className='h-screen flex flex-col'>
+      <div>
+        <img src={Banner} />
+      </div>
+      <div className='grid place-items-center flex-1'>
+        <Card className='max-w-md w-full'>
+          <CardHeader>
+            <CardTitle className='text-xl pt-4'>Login</CardTitle>
+            <CardDescription>Enter your credentials</CardDescription>
+          </CardHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name='srCode'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>ID</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='password'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type='password' {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter className='w-full flex-col'>
+                <Button className='w-full'>Login</Button>
+                <p className='text-sm pt-2'>
+                  Don&apos;t have an account?{' '}
+                  <Button
+                    variant='link'
+                    type='button'
+                    className='p-0'
+                    onClick={() => navigate({ to: '/register' })}>
+                    Register
+                  </Button>
+                </p>
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
+      </div>
     </div>
   );
 }

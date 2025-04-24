@@ -37,8 +37,8 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/context/ChatContext';
-import BSULogo from '@/assets/bsu-logo.png';
 import { useQueryClient } from '@tanstack/react-query';
+import Logo from './logo';
 
 export default function AppSidebar({ user }: { user: User }) {
   const navigate = useNavigate();
@@ -166,7 +166,7 @@ export default function AppSidebar({ user }: { user: User }) {
         <SidebarGroup>
           <SidebarGroupLabel className='mb-4'>
             <div className='flex items-center gap-2'>
-              <img src={BSULogo} alt='BSU Logo' className='w-8' />
+              <Logo />
               <p className='text-sidebar-foreground/70'>
                 Student Internship Portal
               </p>
@@ -185,7 +185,7 @@ export default function AppSidebar({ user }: { user: User }) {
                           to={item.url}
                           className={cn(
                             item.url === '/dashboard' &&
-                              'relative flex size-3 flex items-center justify-between',
+                              'relative flex size-3 items-center justify-between',
                           )}>
                           {item.url === '/dashboard' ? (
                             <div className='flex items-center gap-2'>
