@@ -112,7 +112,7 @@ export const supervisorFeedbackRoutes = new Hono()
   })
 
   // Get a specific template with its questions
-  .get('/:id', requireRole(['admin', 'coordinator', 'student']), async (c) => {
+  .get('/:id', async (c) => {
     try {
       const idParam = c.req.param('id');
       const id = Number(idParam);

@@ -132,7 +132,7 @@ export const appraisalRoutes = new Hono()
   })
 
   // Get a specific template with its categories and questions
-  .get('/:id', requireRole(['admin', 'coordinator', 'student']), async (c) => {
+  .get('/:id', async (c) => {
     try {
       const idParam = c.req.param('id');
       const id = Number(idParam);
