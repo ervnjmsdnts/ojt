@@ -102,7 +102,7 @@ function RouteComponent() {
       return;
     }
     mutate(data, {
-      onSuccess: () => navigate({ to: '/' }),
+      onSuccess: () => navigate({ to: '/login' }),
       onError: (error) => {
         console.log(error.message);
         toast.error(error.message);
@@ -311,7 +311,7 @@ function RouteComponent() {
                     variant='link'
                     type='button'
                     className='p-0'
-                    onClick={() => navigate({ to: '/' })}>
+                    onClick={() => navigate({ to: '/login' })}>
                     Log in
                   </Button>
                 </p>

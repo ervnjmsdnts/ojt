@@ -13,7 +13,7 @@ export const Route = createFileRoute('/_authenticated-no-sidebar')({
       user = null;
     }
 
-    if (!user) throw redirect({ to: '/' });
+    if (!user) throw redirect({ to: '/login' });
 
     return { user };
   },

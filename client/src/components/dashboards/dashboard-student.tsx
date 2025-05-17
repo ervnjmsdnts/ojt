@@ -437,11 +437,13 @@ export default function DashboardStudent({ userId }: { userId: number }) {
   return (
     <SidebarInset className='py-4 px-8 flex flex-row gap-4'>
       <div className='w-3/4 flex flex-col gap-4'>
-        <div className='grid grid-cols-3 gap-2'>
-          <Card>
+        <div className='grid grid-cols-3 gap-2 font-semibold'>
+          <Card className='bg-yellow-400'>
             <CardHeader>
               <CardTitle>Pre-OJT</CardTitle>
-              <CardDescription>Number of Approved Submissions</CardDescription>
+              <CardDescription className='text-white'>
+                Number of Approved Submissions
+              </CardDescription>
             </CardHeader>
             <CardContent className='flex justify-end'>
               {isPending ? (
@@ -454,10 +456,12 @@ export default function DashboardStudent({ userId }: { userId: number }) {
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className='bg-red-400'>
             <CardHeader>
               <CardTitle>OJT</CardTitle>
-              <CardDescription>Number of Hours</CardDescription>
+              <CardDescription className='text-white'>
+                Number of Hours
+              </CardDescription>
             </CardHeader>
             <CardContent className='flex justify-end'>
               {isPending ? (
@@ -470,10 +474,12 @@ export default function DashboardStudent({ userId }: { userId: number }) {
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className='bg-blue-400'>
             <CardHeader>
               <CardTitle>Post-OJT</CardTitle>
-              <CardDescription>Number of Approved Submissions</CardDescription>
+              <CardDescription className='text-white'>
+                Number of Approved Submissions
+              </CardDescription>
             </CardHeader>
             <CardContent className='flex justify-end'>
               {isPending ? (

@@ -62,6 +62,10 @@ function RouteComponent() {
   const queryClient = useQueryClient();
 
   const [filterName, setFilterName] = useState('');
+  const [filterProgram, setFilterProgram] = useState<string | 'any'>('any');
+  const [filterDepartment, setFilterDepartment] = useState<string | 'any'>(
+    'any',
+  );
 
   const [updateName, setUpdateName] = useState('');
   const [editingRow, setEditingRow] = useState<number | null>(null);
@@ -127,9 +131,17 @@ function RouteComponent() {
         .toLowerCase()
         .includes(filterName.toLowerCase());
 
-      return nameMatches;
+      const programMatches =
+        filterProgram === 'any' ? true : c.program.name === filterProgram;
+
+      const departmentMatches =
+        filterDepartment === 'any'
+          ? true
+          : c.department.name === filterDepartment;
+
+      return nameMatches && programMatches && departmentMatches;
     });
-  }, [classes, filterName]);
+  }, [classes, filterName, filterProgram, filterDepartment]);
 
   const { currentItems, paginate, currentPage, totalPages } =
     usePagination(filteredClasses);
@@ -144,6 +156,46 @@ function RouteComponent() {
             className='max-w-xs'
             placeholder='Search by name...'
           />
+          <div className='flex items-center gap-1'>
+            <p className='text-sm text-muted-foreground'>Program:</p>
+            <Select
+              defaultValue='any'
+              onValueChange={(value) => setFilterProgram(value)}>
+              <SelectTrigger className='w-[120px]'>
+                <SelectValue placeholder='Select program...' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='any'>Any</SelectItem>
+                {!programsPending &&
+                  programs &&
+                  programs.map((p) => (
+                    <SelectItem key={p.id} value={p.name}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className='flex items-center gap-1'>
+            <p className='text-sm text-muted-foreground'>Department:</p>
+            <Select
+              defaultValue='any'
+              onValueChange={(value) => setFilterDepartment(value)}>
+              <SelectTrigger className='w-[120px]'>
+                <SelectValue placeholder='Select department...' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='any'>Any</SelectItem>
+                {!departmentsPending &&
+                  departments &&
+                  departments.map((d) => (
+                    <SelectItem key={d.id} value={d.name}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <AddClassDialog />
       </div>

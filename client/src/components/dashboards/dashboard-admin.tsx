@@ -537,8 +537,8 @@ export default function DashboardAdmin({
   return (
     <SidebarInset className='py-4 px-8 flex flex-row gap-4'>
       <div className='w-3/4 flex flex-col gap-4'>
-        <div className='grid grid-cols-3 gap-2'>
-          <Card>
+        <div className='grid grid-cols-3 gap-2 font-semibold'>
+          <Card className='bg-yellow-400'>
             <CardHeader>
               <CardTitle>Pre-OJT</CardTitle>
             </CardHeader>
@@ -550,7 +550,7 @@ export default function DashboardAdmin({
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className='bg-red-400'>
             <CardHeader>
               <CardTitle>OJT</CardTitle>
             </CardHeader>
@@ -562,7 +562,7 @@ export default function DashboardAdmin({
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card className='bg-blue-400'>
             <CardHeader>
               <CardTitle>Post-OJT</CardTitle>
             </CardHeader>

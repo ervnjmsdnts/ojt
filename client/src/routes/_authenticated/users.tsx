@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AddUserDialog from '@/components/users/add-user-dialog';
+import ArchiveUserDialog from '@/components/users/archive-user-dialog';
 import usePagination from '@/hooks/use-pagination';
 import {
   getUsers,
@@ -138,7 +139,7 @@ function RouteComponent() {
         <AddUserDialog />
       </div>
       <div className='flex flex-1 flex-col gap-4'>
-        <div className='border h-full rounded-lg'>
+        <div className='border bg-white h-full rounded-lg'>
           <Table>
             <TableHeader>
               <TableRow>
@@ -151,7 +152,7 @@ function RouteComponent() {
                   <DoubleClickTooltip text='Role' />
                 </TableHead>
                 <TableHead>Gender</TableHead>
-                {/* <TableHead className='text-center'>Actions</TableHead> */}
+                <TableHead className='text-center'>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -217,13 +218,11 @@ function RouteComponent() {
                       </EditableTableCell>
                     )}
                     <TableCell>{toUpperCase(user.gender)}</TableCell>
-                    {/* <TableCell>
+                    <TableCell>
                       <div className='flex justify-center'>
-                        <Button variant='destructive' size='icon'>
-                          <Archive />
-                        </Button>
+                        <ArchiveUserDialog id={user.id.toString()} />
                       </div>
-                    </TableCell> */}
+                    </TableCell>
                   </TableRow>
                 ))
               )}

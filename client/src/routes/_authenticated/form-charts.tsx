@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import {
   getAllFeedbackResponses,
   getDepartments,
@@ -36,6 +36,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { useReactToPrint } from 'react-to-print';
+import { Printer } from 'lucide-react';
 // Custom X-Axis Tick component to render wrapped text
 const CustomXAxisTick = (props: any) => {
   const { x, y, payload, questions } = props;
@@ -356,6 +358,12 @@ function RouteComponent() {
     isLoadingUnanswered,
   ]);
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrintFn = useReactToPrint({
+    contentRef,
+    pageStyle: '@media print { @page { size: A4; margin: 200mm !important }}',
+  });
+
   if (isLoading) {
     return <div className='p-4'>Loading data...</div>;
   }
@@ -432,6 +440,12 @@ function RouteComponent() {
           </div>
         </CardContent>
       </Card>
+      <div className='flex justify-end'>
+        <Button onClick={() => reactToPrintFn()}>
+          <Printer />
+          Print
+        </Button>
+      </div>
 
       {/* Display message if no data */}
       {chartData.student.length === 0 && chartData.supervisor.length === 0 && (
@@ -449,279 +463,282 @@ function RouteComponent() {
         chartData.supervisor.length > 0 ||
         unansweredData?.student?.count > 0 ||
         unansweredData?.supervisor?.count > 0) && (
-        <div className='flex flex-col gap-4'>
-          {/* Student feedback table and chart */}
-          {chartData.student.length > 0 && (
-            <>
-              <div className='mb-8 overflow-x-auto'>
-                <table className='w-full border-collapse border-l border-t border-r border-black'>
-                  <thead>
-                    <tr>
-                      <th colSpan={6} className='text-center font-bold p-2'>
-                        Student Trainees Feedback
-                      </th>
-                    </tr>
-                    <tr>
-                      <th
-                        colSpan={6}
-                        className='text-center italic font-normal p-1 text-sm'>
-                        S-Strongly Agree, A-Agree, N-Neutral, D-Disagree,
-                        SD-Strongly Disagree
-                      </th>
-                    </tr>
-                    <tr>
-                      <th className='w-[60%] border border-black p-2 text-left'></th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        SA
-                      </th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        A
-                      </th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        N
-                      </th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        D
-                      </th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        SD
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {chartData.student.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className='border border-black p-2 font-normal'>
-                          {idx + 1}. {item.question}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.SA}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.A}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.N}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.D}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.SD}
-                        </td>
+        <div className='flex flex-col gap-16'>
+          <div ref={contentRef} className='flex flex-col gap-16'>
+            {/* Student feedback table and chart */}
+            {chartData.student.length > 0 && (
+              <>
+                <div className='overflow-x-auto'>
+                  <table className='w-full border-collapse border-l border-t border-r border-black'>
+                    <thead>
+                      <tr>
+                        <th colSpan={6} className='text-center font-bold p-2'>
+                          Student Trainees Feedback
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                      <tr>
+                        <th
+                          colSpan={6}
+                          className='text-center italic font-normal p-1 text-sm'>
+                          S-Strongly Agree, A-Agree, N-Neutral, D-Disagree,
+                          SD-Strongly Disagree
+                        </th>
+                      </tr>
+                      <tr>
+                        <th className='w-[60%] border border-black p-2 text-left'></th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          SA
+                        </th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          A
+                        </th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          N
+                        </th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          D
+                        </th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          SD
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chartData.student.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className='border border-black p-2 font-normal'>
+                            {idx + 1}. {item.question}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.SA}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.A}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.N}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.D}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.SD}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              {/* Combined Chart for Student Feedback */}
-              <div className='border'>
-                <div className='mt-8'>
-                  <h3 className='text-lg font-medium text-center mb-4'>
-                    Student Trainees Feedback
-                  </h3>
-                  <div style={{ width: '100%', height: 600 }}>
-                    <ResponsiveContainer width='100%' height='100%'>
-                      <BarChart
-                        data={formattedData.student.chartData}
-                        margin={{
-                          top: 20,
-                          right: 30,
-                          left: 30,
-                          bottom: 130, // Increased bottom margin
-                        }}>
-                        <CartesianGrid strokeDasharray='3 3' />
-                        <XAxis
-                          dataKey='name'
-                          height={130} // Increased height for labels
-                          tick={
-                            <CustomXAxisTick
-                              questions={formattedData.student.questionData}
-                            />
-                          }
-                          interval={0}
-                        />
-                        <YAxis
-                          domain={[0, 180]}
-                          ticks={[0, 20, 40, 60, 80, 100, 120, 140, 160, 180]}
-                        />
-                        <Tooltip />
-                        <Legend wrapperStyle={{ bottom: 0, left: 0 }} />
-                        <Bar
-                          dataKey='SA'
-                          fill={chartColors.SA}
-                          name='S'
-                          barSize={20}
-                        />
-                        <Bar
-                          dataKey='A'
-                          fill={chartColors.A}
-                          name='A'
-                          barSize={20}
-                        />
-                        <Bar
-                          dataKey='N'
-                          fill={chartColors.N}
-                          name='N'
-                          barSize={20}
-                        />
-                        <Bar
-                          dataKey='D'
-                          fill={chartColors.D}
-                          name='D'
-                          barSize={20}
-                        />
-                        <Bar
-                          dataKey='SD'
-                          fill={chartColors.SD}
-                          name='SD'
-                          barSize={20}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                {/* Combined Chart for Student Feedback */}
+                <div className='border'>
+                  <div className='mt-8'>
+                    <h3 className='text-lg font-medium text-center mb-4'>
+                      Student Trainees Feedback
+                    </h3>
+                    <div style={{ width: '100%', height: 600 }}>
+                      <ResponsiveContainer width='100%' height='100%'>
+                        <BarChart
+                          data={formattedData.student.chartData}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 30,
+                            bottom: 130, // Increased bottom margin
+                          }}>
+                          <CartesianGrid strokeDasharray='3 3' />
+                          <XAxis
+                            dataKey='name'
+                            height={130} // Increased height for labels
+                            tick={
+                              <CustomXAxisTick
+                                questions={formattedData.student.questionData}
+                              />
+                            }
+                            interval={0}
+                          />
+                          <YAxis
+                            domain={[0, 180]}
+                            ticks={[0, 20, 40, 60, 80, 100, 120, 140, 160, 180]}
+                          />
+                          <Tooltip />
+                          <Legend wrapperStyle={{ bottom: 0, left: 0 }} />
+                          <Bar
+                            dataKey='SA'
+                            fill={chartColors.SA}
+                            name='S'
+                            barSize={20}
+                          />
+                          <Bar
+                            dataKey='A'
+                            fill={chartColors.A}
+                            name='A'
+                            barSize={20}
+                          />
+                          <Bar
+                            dataKey='N'
+                            fill={chartColors.N}
+                            name='N'
+                            barSize={20}
+                          />
+                          <Bar
+                            dataKey='D'
+                            fill={chartColors.D}
+                            name='D'
+                            barSize={20}
+                          />
+                          <Bar
+                            dataKey='SD'
+                            fill={chartColors.SD}
+                            name='SD'
+                            barSize={20}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
 
-          {/* Supervisor feedback table and chart */}
-          {chartData.supervisor.length > 0 && (
-            <>
-              <div className='mb-8 overflow-x-auto'>
-                <table className='w-full border-collapse border-l border-t border-r border-black'>
-                  <thead>
-                    <tr>
-                      <th colSpan={6} className='text-center font-bold p-2'>
-                        Training Supervisor&apos;s Feedback
-                      </th>
-                    </tr>
-                    <tr>
-                      <th
-                        colSpan={6}
-                        className='text-center italic font-normal p-1 text-sm'>
-                        S-Strongly Agree, A-Agree, N-Neutral, D-Disagree,
-                        SD-Strongly Disagree
-                      </th>
-                    </tr>
-                    <tr>
-                      <th className='w-[60%] border border-black p-2 text-left'></th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        SA
-                      </th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        A
-                      </th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        N
-                      </th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        D
-                      </th>
-                      <th className='w-[8%] text-center border border-black p-2'>
-                        SD
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {chartData.supervisor.map((item, idx) => (
-                      <tr key={idx}>
-                        <td className='border border-black p-2 font-normal'>
-                          {idx + 1}. {item.question}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.SA}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.A}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.N}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.D}
-                        </td>
-                        <td className='text-center border border-black p-2'>
-                          {item.SD}
-                        </td>
+            {/* Supervisor feedback table and chart */}
+            {chartData.supervisor.length > 0 && (
+              <>
+                <div className='mb-8 overflow-x-auto'>
+                  <table className='w-full border-collapse border-l border-t border-r border-black'>
+                    <thead>
+                      <tr>
+                        <th colSpan={6} className='text-center font-bold p-2'>
+                          Training Supervisor&apos;s Feedback
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                      <tr>
+                        <th
+                          colSpan={6}
+                          className='text-center italic font-normal p-1 text-sm'>
+                          S-Strongly Agree, A-Agree, N-Neutral, D-Disagree,
+                          SD-Strongly Disagree
+                        </th>
+                      </tr>
+                      <tr>
+                        <th className='w-[60%] border border-black p-2 text-left'></th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          SA
+                        </th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          A
+                        </th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          N
+                        </th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          D
+                        </th>
+                        <th className='w-[8%] text-center border border-black p-2'>
+                          SD
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chartData.supervisor.map((item, idx) => (
+                        <tr key={idx}>
+                          <td className='border border-black p-2 font-normal'>
+                            {idx + 1}. {item.question}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.SA}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.A}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.N}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.D}
+                          </td>
+                          <td className='text-center border border-black p-2'>
+                            {item.SD}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              {/* Combined Chart for Supervisor Feedback */}
-              <div className='border'>
-                <div className='mt-8'>
-                  <h3 className='text-lg font-medium text-center mb-4'>
-                    Training Supervisor&apos;s Feedback
-                  </h3>
-                  <div style={{ width: '100%', height: 600 }}>
-                    <ResponsiveContainer width='100%' height='100%'>
-                      <BarChart
-                        data={formattedData.supervisor.chartData}
-                        margin={{
-                          top: 20,
-                          right: 30,
-                          left: 30,
-                          bottom: 130, // Increased bottom margin
-                        }}>
-                        <CartesianGrid strokeDasharray='3 3' />
-                        <XAxis
-                          dataKey='name'
-                          height={130} // Increased height for labels
-                          tick={
-                            <CustomXAxisTick
-                              questions={formattedData.supervisor.questionData}
-                            />
-                          }
-                          interval={0}
-                        />
-                        <YAxis
-                          domain={[0, 180]}
-                          ticks={[0, 20, 40, 60, 80, 100, 120, 140, 160, 180]}
-                        />
-                        <Tooltip />
-                        <Legend wrapperStyle={{ bottom: 0, left: 0 }} />
-                        <Bar
-                          dataKey='SA'
-                          fill={chartColors.SA}
-                          name='S'
-                          barSize={20}
-                        />
-                        <Bar
-                          dataKey='A'
-                          fill={chartColors.A}
-                          name='A'
-                          barSize={20}
-                        />
-                        <Bar
-                          dataKey='N'
-                          fill={chartColors.N}
-                          name='N'
-                          barSize={20}
-                        />
-                        <Bar
-                          dataKey='D'
-                          fill={chartColors.D}
-                          name='D'
-                          barSize={20}
-                        />
-                        <Bar
-                          dataKey='SD'
-                          fill={chartColors.SD}
-                          name='SD'
-                          barSize={20}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                {/* Combined Chart for Supervisor Feedback */}
+                <div className='border'>
+                  <div className='mt-16'>
+                    <h3 className='text-lg font-medium text-center mb-4'>
+                      Training Supervisor&apos;s Feedback
+                    </h3>
+                    <div style={{ width: '100%', height: 600 }}>
+                      <ResponsiveContainer width='100%' height='100%'>
+                        <BarChart
+                          data={formattedData.supervisor.chartData}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 30,
+                            bottom: 130, // Increased bottom margin
+                          }}>
+                          <CartesianGrid strokeDasharray='3 3' />
+                          <XAxis
+                            dataKey='name'
+                            height={130} // Increased height for labels
+                            tick={
+                              <CustomXAxisTick
+                                questions={
+                                  formattedData.supervisor.questionData
+                                }
+                              />
+                            }
+                            interval={0}
+                          />
+                          <YAxis
+                            domain={[0, 180]}
+                            ticks={[0, 20, 40, 60, 80, 100, 120, 140, 160, 180]}
+                          />
+                          <Tooltip />
+                          <Legend wrapperStyle={{ bottom: 0, left: 0 }} />
+                          <Bar
+                            dataKey='SA'
+                            fill={chartColors.SA}
+                            name='S'
+                            barSize={20}
+                          />
+                          <Bar
+                            dataKey='A'
+                            fill={chartColors.A}
+                            name='A'
+                            barSize={20}
+                          />
+                          <Bar
+                            dataKey='N'
+                            fill={chartColors.N}
+                            name='N'
+                            barSize={20}
+                          />
+                          <Bar
+                            dataKey='D'
+                            fill={chartColors.D}
+                            name='D'
+                            barSize={20}
+                          />
+                          <Bar
+                            dataKey='SD'
+                            fill={chartColors.SD}
+                            name='SD'
+                            barSize={20}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
-
+              </>
+            )}
+          </div>
           {/* Unanswered feedback chart */}
           {unansweredChartData && unansweredChartData.length > 0 && (
             <div className='border'>

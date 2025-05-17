@@ -11,7 +11,10 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ResetPasswordImport } from './routes/reset-password'
 import { Route as RegisterImport } from './routes/register'
+import { Route as LoginImport } from './routes/login'
+import { Route as ForgotPasswordImport } from './routes/forgot-password'
 import { Route as FeedbackImport } from './routes/feedback'
 import { Route as AppraisalImport } from './routes/appraisal'
 import { Route as AuthenticatedNoSidebarImport } from './routes/_authenticated-no-sidebar'
@@ -42,9 +45,27 @@ import { Route as AuthenticatedOjtIdImport } from './routes/_authenticated/ojt.$
 
 // Create/Update Routes
 
+const ResetPasswordRoute = ResetPasswordImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const RegisterRoute = RegisterImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LoginRoute = LoginImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ForgotPasswordRoute = ForgotPasswordImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -255,11 +276,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeedbackImport
       parentRoute: typeof rootRoute
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordImport
+      parentRoute: typeof rootRoute
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginImport
+      parentRoute: typeof rootRoute
+    }
     '/register': {
       id: '/register'
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterImport
+      parentRoute: typeof rootRoute
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordImport
       parentRoute: typeof rootRoute
     }
     '/_authenticated-no-sidebar/assign-company': {
@@ -497,7 +539,10 @@ export interface FileRoutesByFullPath {
   '': typeof AuthenticatedNoSidebarRouteWithChildren
   '/appraisal': typeof AppraisalRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/assign-company': typeof AuthenticatedNoSidebarAssignCompanyRoute
   '/assign-coordinator': typeof AuthenticatedNoSidebarAssignCoordinatorRoute
   '/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
@@ -527,7 +572,10 @@ export interface FileRoutesByTo {
   '': typeof AuthenticatedNoSidebarRouteWithChildren
   '/appraisal': typeof AppraisalRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/assign-company': typeof AuthenticatedNoSidebarAssignCompanyRoute
   '/assign-coordinator': typeof AuthenticatedNoSidebarAssignCoordinatorRoute
   '/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
@@ -559,7 +607,10 @@ export interface FileRoutesById {
   '/_authenticated-no-sidebar': typeof AuthenticatedNoSidebarRouteWithChildren
   '/appraisal': typeof AppraisalRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/_authenticated-no-sidebar/assign-company': typeof AuthenticatedNoSidebarAssignCompanyRoute
   '/_authenticated-no-sidebar/assign-coordinator': typeof AuthenticatedNoSidebarAssignCoordinatorRoute
   '/_authenticated/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
@@ -591,7 +642,10 @@ export interface FileRouteTypes {
     | ''
     | '/appraisal'
     | '/feedback'
+    | '/forgot-password'
+    | '/login'
     | '/register'
+    | '/reset-password'
     | '/assign-company'
     | '/assign-coordinator'
     | '/appraisal-email'
@@ -620,7 +674,10 @@ export interface FileRouteTypes {
     | ''
     | '/appraisal'
     | '/feedback'
+    | '/forgot-password'
+    | '/login'
     | '/register'
+    | '/reset-password'
     | '/assign-company'
     | '/assign-coordinator'
     | '/appraisal-email'
@@ -650,7 +707,10 @@ export interface FileRouteTypes {
     | '/_authenticated-no-sidebar'
     | '/appraisal'
     | '/feedback'
+    | '/forgot-password'
+    | '/login'
     | '/register'
+    | '/reset-password'
     | '/_authenticated-no-sidebar/assign-company'
     | '/_authenticated-no-sidebar/assign-coordinator'
     | '/_authenticated/appraisal-email'
@@ -682,7 +742,10 @@ export interface RootRouteChildren {
   AuthenticatedNoSidebarRoute: typeof AuthenticatedNoSidebarRouteWithChildren
   AppraisalRoute: typeof AppraisalRoute
   FeedbackRoute: typeof FeedbackRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -691,7 +754,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedNoSidebarRoute: AuthenticatedNoSidebarRouteWithChildren,
   AppraisalRoute: AppraisalRoute,
   FeedbackRoute: FeedbackRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 
 export const routeTree = rootRoute
@@ -709,7 +775,10 @@ export const routeTree = rootRoute
         "/_authenticated-no-sidebar",
         "/appraisal",
         "/feedback",
-        "/register"
+        "/forgot-password",
+        "/login",
+        "/register",
+        "/reset-password"
       ]
     },
     "/": {
@@ -753,8 +822,17 @@ export const routeTree = rootRoute
     "/feedback": {
       "filePath": "feedback.tsx"
     },
+    "/forgot-password": {
+      "filePath": "forgot-password.tsx"
+    },
+    "/login": {
+      "filePath": "login.tsx"
+    },
     "/register": {
       "filePath": "register.tsx"
+    },
+    "/reset-password": {
+      "filePath": "reset-password.tsx"
     },
     "/_authenticated-no-sidebar/assign-company": {
       "filePath": "_authenticated-no-sidebar/assign-company.tsx",

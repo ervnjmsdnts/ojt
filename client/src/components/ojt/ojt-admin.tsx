@@ -27,6 +27,8 @@ import {
   getOJTsCoordinator,
   UpdateOJTStatus,
   updateOJTStatus,
+  getPrograms,
+  getDepartments,
 } from '@/lib/api';
 import { OJTStatus } from '@/lib/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -54,6 +56,15 @@ export default function OJTAdmin({
     },
   );
 
+  const { isPending: programsPending, data: programs } = useQuery({
+    queryKey: ['programs'],
+    queryFn: getPrograms,
+  });
+  const { isPending: departmentsPending, data: departments } = useQuery({
+    queryKey: ['departments'],
+    queryFn: getDepartments,
+  });
+
   const ojts = role === 'admin' ? ojtsAdmin : ojtsCoordinator;
 
   const isPending =
@@ -63,6 +74,10 @@ export default function OJTAdmin({
 
   const [filterName, setFilterName] = useState('');
   const [filterStatus, setFilterStatus] = useState<OJTStatus | 'any'>('any');
+  const [filterProgram, setFilterProgram] = useState<string | 'any'>('any');
+  const [filterDepartment, setFilterDepartment] = useState<string | 'any'>(
+    'any',
+  );
 
   const [editingRow, setEditingRow] = useState<number | null>(null);
 
@@ -91,9 +106,19 @@ export default function OJTAdmin({
       const statusMatches =
         filterStatus === 'any' ? true : ojt.status === filterStatus;
 
-      return nameMatches && statusMatches;
+      const programMatches =
+        filterProgram === 'any' ? true : ojt.program?.name === filterProgram;
+
+      const departmentMatches =
+        filterDepartment === 'any'
+          ? true
+          : ojt.department?.name === filterDepartment;
+
+      return (
+        nameMatches && statusMatches && programMatches && departmentMatches
+      );
     });
-  }, [ojts, filterName, filterStatus]);
+  }, [ojts, filterName, filterStatus, filterProgram, filterDepartment]);
 
   const { currentItems, paginate, currentPage, totalPages } =
     usePagination(filteredOJTs);
@@ -108,22 +133,65 @@ export default function OJTAdmin({
             className='max-w-xs'
             placeholder='Search by name...'
           />
-          <Select
-            defaultValue='any'
-            onValueChange={(value) =>
-              setFilterStatus(value as OJTStatus | 'any')
-            }>
-            <SelectTrigger className='w-[120px]'>
-              <SelectValue placeholder='Select category...' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='any'>Any</SelectItem>
-              <SelectItem value='pre-ojt'>Pre-OJT</SelectItem>
-              <SelectItem value='ojt'>OJT</SelectItem>
-              <SelectItem value='post-ojt'>Post-OJT</SelectItem>
-              <SelectItem value='completed'>Completed</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className='flex items-center gap-1'>
+            <p className='text-sm text-muted-foreground'>Status:</p>
+            <Select
+              defaultValue='any'
+              onValueChange={(value) =>
+                setFilterStatus(value as OJTStatus | 'any')
+              }>
+              <SelectTrigger className='w-[120px]'>
+                <SelectValue placeholder='Select category...' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='any'>Any</SelectItem>
+                <SelectItem value='pre-ojt'>Pre-OJT</SelectItem>
+                <SelectItem value='ojt'>OJT</SelectItem>
+                <SelectItem value='post-ojt'>Post-OJT</SelectItem>
+                <SelectItem value='completed'>Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className='flex items-center gap-1'>
+            <p className='text-sm text-muted-foreground'>Program:</p>
+            <Select
+              defaultValue='any'
+              onValueChange={(value) => setFilterProgram(value)}>
+              <SelectTrigger className='w-[120px]'>
+                <SelectValue placeholder='Select program...' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='any'>Any</SelectItem>
+                {!programsPending &&
+                  programs &&
+                  programs.map((p) => (
+                    <SelectItem key={p.id} value={p.name}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className='flex items-center gap-1'>
+            <p className='text-sm text-muted-foreground'>Department:</p>
+            <Select
+              defaultValue='any'
+              onValueChange={(value) => setFilterDepartment(value)}>
+              <SelectTrigger className='w-[120px]'>
+                <SelectValue placeholder='Select department...' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='any'>Any</SelectItem>
+                {!departmentsPending &&
+                  departments &&
+                  departments.map((d) => (
+                    <SelectItem key={d.id} value={d.name}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       <div className='flex flex-1 flex-col gap-4'>

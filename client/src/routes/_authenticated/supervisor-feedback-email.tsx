@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { createFileRoute } from '@tanstack/react-router';
 import {
@@ -13,6 +7,7 @@ import {
   FormLabel,
   FormControl,
   FormField,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -98,10 +93,6 @@ function RouteComponent() {
         <Card className='w-full max-w-md'>
           <CardHeader>
             <CardTitle>Supervisor Feedback</CardTitle>
-            <CardDescription>
-              Please enter the email of your supervisor to send the feedback
-              form.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -113,8 +104,11 @@ function RouteComponent() {
                     <FormItem>
                       <FormLabel>Supervisor Email</FormLabel>
                       <FormControl>
-                        <Input type='email' {...field} disabled={isLoading} />
+                        <Input type='email' {...field} disabled />
                       </FormControl>
+                      <FormDescription>
+                        Go to the profile page to update the email
+                      </FormDescription>
                     </FormItem>
                   )}
                 />

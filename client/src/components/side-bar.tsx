@@ -161,7 +161,7 @@ export default function AppSidebar({ user }: { user: User }) {
   };
 
   return (
-    <Sidebar>
+    <Sidebar className='bg-blue-400 text-white'>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className='mb-4'>

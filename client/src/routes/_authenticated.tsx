@@ -15,7 +15,7 @@ export const Route = createFileRoute('/_authenticated')({
       user = null;
     }
 
-    if (!user) throw redirect({ to: '/' });
+    if (!user) throw redirect({ to: '/login' });
     if (user.role === 'student') {
       const ojt = await queryClient.fetchQuery(userOJTOptions);
       if (ojt && !ojt.coordinatorId && !ojt.studentCoordinatorRequestId)

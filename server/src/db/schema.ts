@@ -15,6 +15,7 @@ export const users = table('users', {
     .default('student'),
   gender: t.mysqlEnum('gender', ['male', 'female']).notNull(),
   profilePictureUrl: t.text('profile_picture_url'),
+  isActive: t.boolean('is_active').default(true),
   createdAt: t
     .bigint('created_at', { mode: 'number' })
     .default(sql`(UNIX_TIMESTAMP() * 1000)`),

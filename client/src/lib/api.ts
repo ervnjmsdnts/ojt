@@ -1233,3 +1233,14 @@ export async function updateAdminOrCoordinatorPersonalInfo(data: {
   const json = await res.json();
   return json;
 }
+
+export async function archiveUser(data: { id: string }) {
+  const res = await api.user[':id'].$delete({ param: { id: data.id } });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}

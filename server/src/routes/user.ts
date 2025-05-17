@@ -42,8 +42,10 @@ export const userRoutes = new Hono()
           gender: users.gender,
           createdAt: users.createdAt,
           updatedAt: users.updatedAt,
+          isActive: users.isActive,
         })
         .from(users)
+        .where(eq(users.isActive, true))
         .orderBy(desc(users.createdAt));
 
       return c.json(result);
@@ -76,6 +78,30 @@ export const userRoutes = new Hono()
         .where(eq(users.id, userId));
 
       return c.json(user);
+    } catch (error) {
+      console.log(error);
+      return c.json({ message: 'Something went wrong' }, 500);
+    }
+  })
+  .delete('/:id', requireRole(['admin']), async (c) => {
+    try {
+      const idParam = c.req.param('id');
+      const id = Number(idParam);
+
+      if (isNaN(id)) {
+        return c.json({ message: 'Invalid user id provided' }, 400);
+      }
+
+      const [result] = await db
+        .update(users)
+        .set({ isActive: false })
+        .where(eq(users.id, id));
+
+      if (result.affectedRows === 0) {
+        return c.json({ message: 'User not found' }, 404);
+      }
+
+      return c.json({ message: 'User archived successfully' });
     } catch (error) {
       console.log(error);
       return c.json({ message: 'Something went wrong' }, 500);
