@@ -21,42 +21,74 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { useMutation } from '@tanstack/react-query';
+import { resetPassword } from '../lib/api';
 
 const formSchema = z
   .object({
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        'Password must contain at least one uppercase letter, one lowercase letter, and one number',
-      ),
+    newPassword: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
   });
 
 type FormSchema = z.infer<typeof formSchema>;
 
+type TokenSearch = {
+  token: string;
+};
+
 export const Route = createFileRoute('/reset-password')({
   component: RouteComponent,
+  validateSearch: (search: Record<string, string>): TokenSearch => {
+    return {
+      token: search.token,
+    };
+  },
 });
 
 function RouteComponent() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const token = search.token;
+
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      password: '',
+      newPassword: '',
       confirmPassword: '',
     },
   });
 
+  const resetPasswordMutation = useMutation({ mutationFn: resetPassword });
+
   const onSubmit = async (data: FormSchema) => {
-    // TODO: Implement password reset
-    console.log(data);
+    if (!token) {
+      toast.error(
+        'Invalid reset token. Please request a new password reset link.',
+      );
+      return;
+    }
+
+    resetPasswordMutation.mutate(
+      { token, newPassword: data.newPassword },
+      {
+        onSuccess: () => {
+          toast.success('Your password has been reset successfully.');
+
+          // Navigate to login after a short delay
+          setTimeout(() => {
+            navigate({ to: '/login' });
+          }, 3000);
+        },
+        onError: () => {
+          toast.error('Failed to reset password. The link may have expired.');
+        },
+      },
+    );
   };
 
   return (
@@ -82,7 +114,7 @@ function RouteComponent() {
                 </p>
                 <FormField
                   control={form.control}
-                  name='password'
+                  name='newPassword'
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>New Password</FormLabel>

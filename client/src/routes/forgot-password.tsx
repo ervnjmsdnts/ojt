@@ -21,6 +21,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { forgotPassword } from '../lib/api';
+import { useMutation } from '@tanstack/react-query';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -41,9 +44,22 @@ function RouteComponent() {
     },
   });
 
+  const forgotPasswordMutation = useMutation({ mutationFn: forgotPassword });
+
   const onSubmit = async (data: FormSchema) => {
-    // TODO: Implement password reset request
-    console.log(data);
+    forgotPasswordMutation.mutate(data, {
+      onSuccess: () => {
+        toast.success(
+          'If an account exists with this email, you will receive a password reset link.',
+        );
+        setTimeout(() => {
+          navigate({ to: '/login' });
+        }, 3000);
+      },
+      onError: () => {
+        toast.error('Something went wrong. Please try again later.');
+      },
+    });
   };
 
   return (

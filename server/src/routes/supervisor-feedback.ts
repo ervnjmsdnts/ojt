@@ -24,6 +24,7 @@ import { generateAccessCode } from '../lib/utils';
 import React from 'react';
 import { resend } from '../lib/resend';
 import { SupervisorFeedbackEmailTemplate } from '../emails/supervisor-feedback-email';
+import env from '../lib/env';
 
 const updateFeedbackTemplateSchema = z.object({
   isActive: z.boolean().optional(),
@@ -645,7 +646,7 @@ export const supervisorFeedbackRoutes = new Hono()
       });
 
       //LocaHost
-      const feedbackUrl = `https://d71d-136-158-67-3.ngrok-free.app/feedback?code=${accessCode}`;
+      const feedbackUrl = `${env.FRONTEND_URL}/feedback?code=${accessCode}`;
 
       const emailElement = React.createElement(
         SupervisorFeedbackEmailTemplate,

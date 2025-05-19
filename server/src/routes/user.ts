@@ -1,7 +1,12 @@
 import { Hono } from 'hono';
 import { requireRole } from '../middlewares/role';
 import { db } from '../db';
-import { insertUserSchema, updateUserSchema, users } from '../db/schema';
+import {
+  insertUserSchema,
+  updateUserSchema,
+  users,
+  passwordResetTokens,
+} from '../db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
@@ -10,6 +15,9 @@ import React from 'react';
 import { resend } from '../lib/resend';
 import { NewUserEmailTemplate } from '../emails/new-user-email';
 import { uploadFile } from '../lib/cloudinary';
+import { PasswordResetEmailTemplate } from '../emails/password-reset-email';
+import crypto from 'crypto';
+import env from '../lib/env';
 
 const updateRoleSchema = z.object({
   role: z.enum(['coordinator', 'student', 'admin']),
@@ -27,6 +35,15 @@ const updatePasswordSchema = z.object({
 const updatePersonalInfoSchema = z.object({
   fullName: z.string().min(1),
   gender: z.enum(['male', 'female']),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string(),
+  newPassword: z.string().min(1),
 });
 
 export const userRoutes = new Hono()
@@ -337,6 +354,107 @@ export const userRoutes = new Hono()
         await db.update(users).set(data).where(eq(users.id, userId));
 
         return c.json({ message: 'Personal info updated successfully' });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .post(
+    '/forgot-password',
+    zValidator('json', forgotPasswordSchema),
+    async (c) => {
+      try {
+        const data = c.req.valid('json');
+
+        const [user] = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, data.email));
+
+        if (!user) {
+          return c.json({
+            message:
+              'If an account exists with this email, you will receive a password reset link',
+          });
+        }
+
+        // Generate a random token
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = Date.now() + 3600000; // 1 hour from now
+
+        // Store the token in the database
+        await db.insert(passwordResetTokens).values({
+          userId: user.id,
+          token,
+          expiresAt,
+        });
+
+        const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+
+        const emailElement = React.createElement(PasswordResetEmailTemplate, {
+          fullName: user.fullName,
+          resetUrl,
+        });
+
+        await resend.emails.send({
+          from: 'noreply@bsuojtportal.xyz',
+          to: user.email,
+          subject: 'Reset Your Password - BSU OJT Portal',
+          react: emailElement,
+        });
+
+        return c.json({
+          message:
+            'If an account exists with this email, you will receive a password reset link',
+        });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .post(
+    '/reset-password',
+    zValidator('json', resetPasswordSchema),
+    async (c) => {
+      try {
+        const data = c.req.valid('json');
+
+        // Find the token
+        const [tokenRecord] = await db
+          .select()
+          .from(passwordResetTokens)
+          .where(eq(passwordResetTokens.token, data.token));
+
+        if (!tokenRecord) {
+          return c.json({ message: 'Invalid or expired token' }, 400);
+        }
+
+        // Check if token is expired
+        if (tokenRecord.expiresAt < Date.now()) {
+          await db
+            .delete(passwordResetTokens)
+            .where(eq(passwordResetTokens.id, tokenRecord.id));
+          return c.json({ message: 'Token has expired' }, 400);
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(data.newPassword, salt);
+
+        // Update the user's password
+        await db
+          .update(users)
+          .set({ password: hash })
+          .where(eq(users.id, tokenRecord.userId));
+
+        // Delete the used token
+        await db
+          .delete(passwordResetTokens)
+          .where(eq(passwordResetTokens.id, tokenRecord.id));
+
+        return c.json({ message: 'Password has been reset successfully' });
       } catch (error) {
         console.log(error);
         return c.json({ message: 'Something went wrong' }, 500);

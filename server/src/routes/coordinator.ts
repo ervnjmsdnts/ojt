@@ -8,6 +8,7 @@ import {
   formTemplates,
   ojtApplication,
   programs,
+  reports,
   studentSubmissions,
   users,
 } from '../db/schema';
@@ -30,6 +31,7 @@ export const coordinatorRoutes = new Hono()
           status: ojtApplication.status,
           studentId: ojtApplication.studentId,
           coordinatorId: ojtApplication.coordinatorId,
+          totalOJTHours: ojtApplication.totalOJTHours,
           companyId: ojtApplication.companyId,
           classId: ojtApplication.classId,
           program: {
@@ -62,6 +64,11 @@ export const coordinatorRoutes = new Hono()
             id: companies.id,
             name: companies.name,
           },
+          approvedHours: sql<number>`COALESCE((
+            SELECT SUM(${reports.numberOfWorkingHours})
+            FROM ${reports}
+            WHERE ${reports.ojtId} = ${ojtApplication.id}
+          ), 0)`,
         })
         .from(ojtApplication)
         .innerJoin(users, eq(ojtApplication.studentId, users.id))

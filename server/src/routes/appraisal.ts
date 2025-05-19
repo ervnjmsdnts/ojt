@@ -25,6 +25,7 @@ import { generateAccessCode } from '../lib/utils';
 import React from 'react';
 import { resend } from '../lib/resend';
 import { AppraisalEmailTemplate } from '../emails/appraisal-email';
+import env from '../lib/env';
 
 export const appraisalRoutes = new Hono()
   .post(
@@ -826,7 +827,7 @@ export const appraisalRoutes = new Hono()
       });
 
       // LocalHost
-      const appraisalUrl = `https://d71d-136-158-67-3.ngrok-free.app/appraisal?code=${accessCode}`;
+      const appraisalUrl = `${env.FRONTEND_URL}/appraisal?code=${accessCode}`;
 
       const emailElement = React.createElement(AppraisalEmailTemplate, {
         studentName: student.fullName,

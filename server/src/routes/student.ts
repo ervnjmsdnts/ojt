@@ -14,6 +14,7 @@ import {
   programs,
   studentSubmissions,
   users,
+  reports,
 } from '../db/schema';
 import { desc, eq, inArray, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/mysql-core';
@@ -115,6 +116,7 @@ export const studentRoutes = new Hono()
           studentId: ojtApplication.studentId,
           coordinatorId: ojtApplication.coordinatorId,
           companyId: ojtApplication.companyId,
+          totalOJTHours: ojtApplication.totalOJTHours,
           classId: ojtApplication.classId,
           program: {
             id: programs.id,
@@ -146,6 +148,11 @@ export const studentRoutes = new Hono()
             id: companies.id,
             name: companies.name,
           },
+          approvedHours: sql<number>`COALESCE((
+            SELECT SUM(${reports.numberOfWorkingHours})
+            FROM ${reports}
+            WHERE ${reports.ojtId} = ${ojtApplication.id}
+          ), 0)`,
         })
         .from(ojtApplication)
         .innerJoin(users, eq(ojtApplication.studentId, users.id))

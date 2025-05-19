@@ -203,6 +203,7 @@ export default function OJTAdmin({
                 <TableHead>
                   <DoubleClickTooltip text='OJT Status' />
                 </TableHead>
+                <TableHead>OJT Hours</TableHead>
                 <TableHead>Class</TableHead>
                 {role === 'admin' && <TableHead>Coordinator</TableHead>}
                 <TableHead>Company</TableHead>
@@ -244,6 +245,9 @@ export default function OJTAdmin({
                         <CategoryBadge category={ojt.status as OJTStatus} />
                       )}
                     </EditableTableCell>
+                    <TableCell>
+                      {ojt?.approvedHours}/{ojt?.totalOJTHours ?? 0}
+                    </TableCell>
                     <TableCell>
                       {ojt?.class ? ojt.class.name : 'Not assigned yet'}
                     </TableCell>

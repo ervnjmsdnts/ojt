@@ -1244,3 +1244,28 @@ export async function archiveUser(data: { id: string }) {
   const json = await res.json();
   return json;
 }
+
+export async function forgotPassword(data: { email: string }) {
+  const res = await api.user['forgot-password'].$post({ json: data });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
+export async function resetPassword(data: {
+  token: string;
+  newPassword: string;
+}) {
+  const res = await api.user['reset-password'].$post({ json: data });
+
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+
+  const json = await res.json();
+  return json;
+}

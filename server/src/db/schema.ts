@@ -25,6 +25,22 @@ export const users = table('users', {
     .$onUpdate(() => sql`(UNIX_TIMESTAMP() * 1000)`),
 });
 
+export const passwordResetTokens = table('password_reset_tokens', {
+  id: t.int('id').primaryKey().autoincrement(),
+  userId: t
+    .int('user_id')
+    .notNull()
+    .references(() => users.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+  token: t.varchar('token', { length: 255 }).notNull().unique(),
+  expiresAt: t.bigint('expires_at', { mode: 'number' }).notNull(),
+  createdAt: t
+    .bigint('created_at', { mode: 'number' })
+    .default(sql`(UNIX_TIMESTAMP() * 1000)`),
+});
+
 export const insertUserSchema = createInsertSchema(users);
 export const updateUserSchema = createUpdateSchema(users);
 

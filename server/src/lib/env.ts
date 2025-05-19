@@ -17,6 +17,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string(),
   STREAM_API_KEY: z.string(),
   STREAM_API_SECRET: z.string(),
+  FRONTEND_URL: z.string(),
 });
 
 export type env = z.infer<typeof envSchema>;
