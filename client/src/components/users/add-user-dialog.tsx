@@ -105,7 +105,7 @@ export default function AddUserDialog() {
               name='srCode'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>SR-Code</FormLabel>
+                  <FormLabel>ID</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>

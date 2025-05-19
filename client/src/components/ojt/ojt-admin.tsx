@@ -73,6 +73,7 @@ export default function OJTAdmin({
   const queryClient = useQueryClient();
 
   const [filterName, setFilterName] = useState('');
+  const [filterClass, setFilterClass] = useState('');
   const [filterStatus, setFilterStatus] = useState<OJTStatus | 'any'>('any');
   const [filterProgram, setFilterProgram] = useState<string | 'any'>('any');
   const [filterDepartment, setFilterDepartment] = useState<string | 'any'>(
@@ -103,6 +104,10 @@ export default function OJTAdmin({
         .toLowerCase()
         .includes(filterName.toLowerCase());
 
+      const classMatches = ojt.class?.name
+        .toLowerCase()
+        .includes(filterClass.toLowerCase());
+
       const statusMatches =
         filterStatus === 'any' ? true : ojt.status === filterStatus;
 
@@ -115,10 +120,21 @@ export default function OJTAdmin({
           : ojt.department?.name === filterDepartment;
 
       return (
-        nameMatches && statusMatches && programMatches && departmentMatches
+        nameMatches &&
+        statusMatches &&
+        programMatches &&
+        departmentMatches &&
+        classMatches
       );
     });
-  }, [ojts, filterName, filterStatus, filterProgram, filterDepartment]);
+  }, [
+    ojts,
+    filterName,
+    filterStatus,
+    filterProgram,
+    filterDepartment,
+    filterClass,
+  ]);
 
   const { currentItems, paginate, currentPage, totalPages } =
     usePagination(filteredOJTs);
@@ -132,6 +148,11 @@ export default function OJTAdmin({
             onChange={(e) => setFilterName(e.target.value)}
             className='max-w-xs'
             placeholder='Search by name...'
+          />
+          <Input
+            onChange={(e) => setFilterClass(e.target.value)}
+            className='max-w-xs'
+            placeholder='Search by class...'
           />
           <div className='flex items-center gap-1'>
             <p className='text-sm text-muted-foreground'>Status:</p>

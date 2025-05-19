@@ -70,7 +70,7 @@ export default function AppSidebar({ user }: { user: User }) {
       roles: ['student', 'coordinator', 'admin'],
     },
     {
-      title: 'OJTs',
+      title: currentUser.role === 'student' ? 'Requirements' : 'OJTs',
       url: '/ojt',
       icon: ClipboardCheck,
       roles: ['student', 'coordinator', 'admin'],

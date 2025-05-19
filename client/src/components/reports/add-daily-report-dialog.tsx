@@ -71,7 +71,7 @@ export default function AddDailyReportDialog() {
               name='date'
               render={({ field }) => (
                 <FormItem className='flex flex-col'>
-                  <FormLabel>Date of birth</FormLabel>
+                  <FormLabel>Date of Report</FormLabel>
                   <Popover modal={true}>
                     <PopoverTrigger asChild>
                       <FormControl>
