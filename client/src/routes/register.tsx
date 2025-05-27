@@ -10,7 +10,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -55,6 +54,7 @@ const schema = z.object({
   registrationForm: z.instanceof(File),
   password: z.string().min(1),
   fullName: z.string().min(1),
+  college: z.string().min(1),
   gender: z.enum(['male', 'female']),
   yearLevel: z.string().min(1),
   semester: z.string().min(1),
@@ -213,6 +213,30 @@ function RouteComponent() {
                             <SelectContent>
                               <SelectItem value='3rd year'>3rd year</SelectItem>
                               <SelectItem value='4th year'>4th year</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name='college'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>College</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder='Select a college' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value='Alangilan'>
+                                Alangilan
+                              </SelectItem>
+                              <SelectItem value='Malvar'>Malvar</SelectItem>
                             </SelectContent>
                           </Select>
                         </FormItem>
