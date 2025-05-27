@@ -50,6 +50,7 @@ const personalInfoSchema = z.object({
   semester: z.string().min(1),
   totalOJTHours: z.number().min(1),
   email: z.string().email().optional(),
+  college: z.string().min(1).optional(),
   academicYear: z.string().min(1),
 });
 
@@ -251,7 +252,7 @@ function RouteComponent() {
   const onSubmitAdminPersonalInfo = (
     data: AdminOrCoordinatorPersonalInfoForm,
   ) => {
-    const { email, ...rest } = data;
+    const { email, college, ...rest } = data;
     updateAdminOrCoordinatorPersonalInfoMutation.mutate(rest, {
       onSuccess: (updatedData) => {
         queryClient.setQueryData<typeof initialUser>(
@@ -539,6 +540,30 @@ function RouteComponent() {
                       />
                       <FormField
                         control={personalInfoForm.control}
+                        name='college'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>College</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={'Alangilan'}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder='Select a college' />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value='Alangilan'>
+                                  Alangilan
+                                </SelectItem>
+                                <SelectItem value='Malvar'>Malvar</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={personalInfoForm.control}
                         name='academicYear'
                         render={({ field }) => (
                           <FormItem>
@@ -666,6 +691,10 @@ function RouteComponent() {
                 <div>
                   <p className='text-sm font-medium text-gray-500'>Semester</p>
                   <p>{studentOJT?.semester || ''}</p>
+                </div>
+                <div>
+                  <p className='text-sm font-medium text-gray-500'>College</p>
+                  <p>Alangilan</p>
                 </div>
                 <div>
                   <p className='text-sm font-medium text-gray-500'>
