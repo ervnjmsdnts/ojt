@@ -11,7 +11,7 @@ const updateProgramNameSchema = z.object({
 });
 
 export const programRoutes = new Hono()
-  .get('/', requireRole(['coordinator', 'admin']), async (c) => {
+  .get('/', async (c) => {
     try {
       const results = await db.select().from(programs);
 

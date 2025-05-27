@@ -14,8 +14,8 @@ import { Download, FileUp, Info, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { Input } from '../ui/input';
 import { useMemo, createRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fileSubmission } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { fileSubmission, getCurrentOJT } from '@/lib/api';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import SubmissionStatusBadge from '../submission-status-badge';
@@ -28,6 +28,10 @@ export default function SubmissionTableStudent({
   isPending: boolean;
   data?: TemplateSubmission[];
 }) {
+  const { isPending: studentOJTPending, data: studentOJT } = useQuery({
+    queryKey: ['student-ojt'],
+    queryFn: getCurrentOJT,
+  });
   const queryClient = useQueryClient();
 
   // Create a map of refs for each template
@@ -76,6 +80,22 @@ export default function SubmissionTableStudent({
     );
   };
 
+  const canSubmitOJT = ['ojt', 'pre-ojt'].includes(studentOJT?.ojtStatus ?? '');
+  const canSubmitPostOJT = ['pre-ojt', 'ojt', 'post-ojt'].includes(
+    studentOJT?.ojtStatus ?? '',
+  );
+
+  const canSubmit = (category: string) => {
+    if (!studentOJT?.ojtStatus) return false;
+
+    const statusOrder = ['pre-ojt', 'ojt', 'post-ojt'];
+    const currentStatusIndex = statusOrder.indexOf(studentOJT.ojtStatus);
+    const categoryIndex = statusOrder.indexOf(category);
+
+    // Allow submission if the category is the current status or any previous status
+    return categoryIndex <= currentStatusIndex;
+  };
+
   return (
     <Table className='h-full'>
       <TableHeader>
@@ -108,7 +128,11 @@ export default function SubmissionTableStudent({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
-                          disabled={fileSubmissionMutation.isPending}
+                          disabled={
+                            fileSubmissionMutation.isPending ||
+                            studentOJTPending ||
+                            !canSubmit(ojt.template.category)
+                          }
                           onClick={() =>
                             handleFileSelect(ojt.template.templateId)
                           }
@@ -188,7 +212,9 @@ export default function SubmissionTableStudent({
                                           submission.submissionStatus ===
                                             'approved' ||
                                           submission.submissionStatus ===
-                                            'pending'
+                                            'pending' ||
+                                          studentOJTPending ||
+                                          !canSubmit(ojt.template.category)
                                         }
                                         onClick={() =>
                                           handleFileSelect(

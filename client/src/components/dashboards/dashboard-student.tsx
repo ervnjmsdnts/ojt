@@ -522,7 +522,7 @@ export default function DashboardStudent({ userId }: { userId: number }) {
         </Card>
       </div>
       <div className='w-1/4 flex flex-col gap-4'>
-        <Card className='h-2/5 overflow-y-auto'>
+        <Card className='h-full overflow-y-auto'>
           <CardHeader>
             <CardTitle>Links</CardTitle>
           </CardHeader>
@@ -552,7 +552,7 @@ export default function DashboardStudent({ userId }: { userId: number }) {
             )}
           </CardContent>
         </Card>
-        <Card className='h-3/5 flex flex-col'>
+        {/* <Card className='h-3/5 flex flex-col'>
           <CardHeader>
             <CardTitle>Chat with Coordinator</CardTitle>
           </CardHeader>
@@ -633,7 +633,7 @@ export default function DashboardStudent({ userId }: { userId: number }) {
               </Chat>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </SidebarInset>
   );

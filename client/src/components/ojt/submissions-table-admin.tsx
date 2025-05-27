@@ -163,7 +163,6 @@ export default function SubmissionsTableAdmin({
                             }>
                             {editingRowStatus === index ? (
                               <Select
-                                defaultValue={submission.submissionStatus}
                                 onValueChange={(value) =>
                                   onUpdateStatus({
                                     status: value as
@@ -178,9 +177,6 @@ export default function SubmissionsTableAdmin({
                                   <SelectValue placeholder='Select status...' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value='pending'>
-                                    Pending
-                                  </SelectItem>
                                   <SelectItem value='approved'>
                                     Approved
                                   </SelectItem>

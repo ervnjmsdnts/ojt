@@ -28,6 +28,7 @@ import {
   getUsers,
   UpdateRole,
   updateUserFullName,
+  updateUserPasswordAdmin,
   updateUserRole,
 } from '@/lib/api';
 import { Role } from '@/lib/types';
@@ -53,13 +54,21 @@ function RouteComponent() {
   const queryClient = useQueryClient();
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [editingRowName, setEditingRowName] = useState<number | null>(null);
+  const [editingRowPassword, setEditingRowPassword] = useState<number | null>(
+    null,
+  );
   const [filterName, setFilterName] = useState('');
   const [filterRole, setFilterRole] = useState<Role | 'any'>('any');
   const [updateName, setUpdateName] = useState('');
+  const [updatePassword, setUpdatePassword] = useState('');
 
   const { mutate } = useMutation({ mutationFn: updateUserRole });
   const updateUserFullNameMutation = useMutation({
     mutationFn: updateUserFullName,
+  });
+
+  const updateUserPasswordMutation = useMutation({
+    mutationFn: updateUserPasswordAdmin,
   });
 
   const onUpdateRole = (data: UpdateRole) => {
@@ -91,6 +100,27 @@ function RouteComponent() {
       }
     },
     [updateName],
+  );
+
+  const onUpdatePassword = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>, data: { userId: number }) => {
+      if (e.key === 'Enter') {
+        if (!updatePassword) {
+          return toast.error('Password cannot be empty');
+        }
+        updateUserPasswordMutation.mutate(
+          { userId: data.userId, password: updatePassword },
+          {
+            onSuccess: () => {
+              queryClient.invalidateQueries({ queryKey: ['users'] });
+              setEditingRowPassword(null);
+              toast.success('User password updated successfully');
+            },
+          },
+        );
+      }
+    },
+    [updatePassword],
   );
 
   const filteredUsers = useMemo(() => {
@@ -149,6 +179,9 @@ function RouteComponent() {
                 </TableHead>
                 <TableHead>Email Address</TableHead>
                 <TableHead>
+                  <DoubleClickTooltip text='Password' />
+                </TableHead>
+                <TableHead>
                   <DoubleClickTooltip text='Role' />
                 </TableHead>
                 <TableHead>Gender</TableHead>
@@ -183,6 +216,25 @@ function RouteComponent() {
                       )}
                     </EditableTableCell>
                     <TableCell>{user.email}</TableCell>
+                    <EditableTableCell
+                      editing={editingRowPassword === index}
+                      onToggleEditing={() =>
+                        setEditingRowPassword(
+                          editingRowPassword === index ? null : index,
+                        )
+                      }>
+                      {editingRowPassword === index ? (
+                        <Input
+                          onChange={(e) => setUpdatePassword(e.target.value)}
+                          onKeyDown={(e) =>
+                            onUpdatePassword(e, { userId: user.id })
+                          }
+                          className='w-[200px]'
+                        />
+                      ) : (
+                        '********'
+                      )}
+                    </EditableTableCell>
                     {user.role === 'student' ? (
                       <TableCell>
                         <RoleBadge role='student' />

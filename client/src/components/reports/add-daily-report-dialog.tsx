@@ -32,7 +32,11 @@ const schema = z.object({
 
 type Schema = z.infer<typeof schema>;
 
-export default function AddDailyReportDialog() {
+export default function AddDailyReportDialog({
+  ojtStatus,
+}: {
+  ojtStatus: 'pre-ojt' | 'ojt' | 'post-ojt' | 'completed' | undefined;
+}) {
   const [open, setOpen] = useState(false);
   const form = useForm<Schema>({ resolver: zodResolver(schema) });
 
@@ -58,7 +62,7 @@ export default function AddDailyReportDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add Daily Report</Button>
+        <Button disabled={ojtStatus === 'pre-ojt'}>Add Daily Report</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

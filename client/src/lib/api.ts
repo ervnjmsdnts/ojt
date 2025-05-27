@@ -252,6 +252,25 @@ export async function updateUserFullName(data: UpdateUserFullName) {
   return json;
 }
 
+export type UpdateUserPassword = {
+  password: string;
+  userId: number;
+};
+
+export async function updateUserPasswordAdmin(data: UpdateUserPassword) {
+  const res = await api.user[':id'].password.$patch({
+    json: { password: data.password },
+    param: { id: data.userId.toString() },
+  });
+
+  if (!res.ok) {
+    throw new Error('Server error');
+  }
+
+  const json = await res.json();
+  return json;
+}
+
 export async function getOJTsAdmin() {
   const res = await api.student.$get();
   if (!res.ok) {
@@ -1030,6 +1049,7 @@ export async function submitAppraisalResponse(data: {
 export async function getAllFeedbackResponses(filters?: {
   departmentId?: number;
   programId?: number;
+  academicYear?: string;
 }) {
   try {
     // Build URL with query parameters
@@ -1041,6 +1061,9 @@ export async function getAllFeedbackResponses(filters?: {
       }
       if (filters.programId) {
         params.append('programId', filters.programId.toString());
+      }
+      if (filters.academicYear) {
+        params.append('academicYear', filters.academicYear.toString());
       }
       if (params.toString()) {
         url += `?${params.toString()}`;
@@ -1067,6 +1090,9 @@ export async function getAllFeedbackResponses(filters?: {
       }
       if (filters.programId) {
         params.append('programId', filters.programId.toString());
+      }
+      if (filters.academicYear) {
+        params.append('academicYear', filters.academicYear.toString());
       }
       if (params.toString()) {
         supervisorUrl += `?${params.toString()}`;
@@ -1097,6 +1123,7 @@ export async function getAllFeedbackResponses(filters?: {
 export async function getUnansweredFeedback(filters?: {
   departmentId?: number;
   programId?: number;
+  academicYear?: string;
 }) {
   try {
     // Build query parameters for student feedback
@@ -1106,6 +1133,9 @@ export async function getUnansweredFeedback(filters?: {
     }
     if (filters?.programId) {
       studentParams.append('programId', filters.programId.toString());
+    }
+    if (filters?.academicYear) {
+      studentParams.append('academicYear', filters.academicYear.toString());
     }
 
     const studentUrl = `/api/student-feedback/response/unanswered${studentParams.toString() ? `?${studentParams.toString()}` : ''}`;
@@ -1117,6 +1147,9 @@ export async function getUnansweredFeedback(filters?: {
     }
     if (filters?.programId) {
       supervisorParams.append('programId', filters.programId.toString());
+    }
+    if (filters?.academicYear) {
+      supervisorParams.append('academicYear', filters.academicYear.toString());
     }
 
     const supervisorUrl = `/api/supervisor-feedback/response/unanswered${supervisorParams.toString() ? `?${supervisorParams.toString()}` : ''}`;
@@ -1176,6 +1209,7 @@ export async function updateStudentPersonalInfo(data: {
   yearLevel: string;
   semester: string;
   totalOJTHours: number;
+  academicYear: string;
 }) {
   const res = await api.student['personal-info'].$patch({
     json: data,

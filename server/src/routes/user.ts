@@ -27,6 +27,10 @@ const updateFullNameSchema = z.object({
   fullName: z.string().min(1),
 });
 
+const updatePasswordAdminSchema = z.object({
+  password: z.string().min(1),
+});
+
 const updatePasswordSchema = z.object({
   currentPassword: z.string(),
   newPassword: z.string().min(1),
@@ -210,6 +214,40 @@ export const userRoutes = new Hono()
         }
 
         return c.json({ message: 'User full name updated successfully' });
+      } catch (error) {
+        console.log(error);
+        return c.json({ message: 'Something went wrong' }, 500);
+      }
+    },
+  )
+  .patch(
+    '/:id/password',
+    requireRole(['admin']),
+    zValidator('json', updatePasswordAdminSchema),
+    async (c) => {
+      try {
+        const idParam = c.req.param('id');
+        const id = Number(idParam);
+
+        if (isNaN(id)) {
+          return c.json({ message: 'Invalid user id provided' }, 400);
+        }
+
+        const data = c.req.valid('json');
+
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(data.password, salt);
+
+        const [result] = await db
+          .update(users)
+          .set({ password: hash })
+          .where(eq(users.id, id));
+
+        if (result.affectedRows === 0) {
+          return c.json({ message: 'User not found' }, 404);
+        }
+
+        return c.json({ message: 'User password updated successfully' });
       } catch (error) {
         console.log(error);
         return c.json({ message: 'Something went wrong' }, 500);

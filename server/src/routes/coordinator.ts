@@ -33,6 +33,7 @@ export const coordinatorRoutes = new Hono()
           coordinatorId: ojtApplication.coordinatorId,
           totalOJTHours: ojtApplication.totalOJTHours,
           companyId: ojtApplication.companyId,
+          academicYear: ojtApplication.academicYear,
           classId: ojtApplication.classId,
           program: {
             id: programs.id,

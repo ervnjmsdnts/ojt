@@ -30,9 +30,11 @@ import { Route as AuthenticatedRequestsImport } from './routes/_authenticated/re
 import { Route as AuthenticatedProgramsImport } from './routes/_authenticated/programs'
 import { Route as AuthenticatedProfileImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedFormChartsImport } from './routes/_authenticated/form-charts'
+import { Route as AuthenticatedFaqImport } from './routes/_authenticated/faq'
 import { Route as AuthenticatedDepartmentsImport } from './routes/_authenticated/departments'
 import { Route as AuthenticatedDashboardImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCompanyImport } from './routes/_authenticated/company'
+import { Route as AuthenticatedCollegesImport } from './routes/_authenticated/colleges'
 import { Route as AuthenticatedClassesImport } from './routes/_authenticated/classes'
 import { Route as AuthenticatedAppraisalTemplateImport } from './routes/_authenticated/appraisal-template'
 import { Route as AuthenticatedAppraisalEmailImport } from './routes/_authenticated/appraisal-email'
@@ -161,6 +163,12 @@ const AuthenticatedFormChartsRoute = AuthenticatedFormChartsImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
+const AuthenticatedFaqRoute = AuthenticatedFaqImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
 const AuthenticatedDepartmentsRoute = AuthenticatedDepartmentsImport.update({
   id: '/departments',
   path: '/departments',
@@ -176,6 +184,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardImport.update({
 const AuthenticatedCompanyRoute = AuthenticatedCompanyImport.update({
   id: '/company',
   path: '/company',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+
+const AuthenticatedCollegesRoute = AuthenticatedCollegesImport.update({
+  id: '/colleges',
+  path: '/colleges',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 
@@ -339,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClassesImport
       parentRoute: typeof AuthenticatedImport
     }
+    '/_authenticated/colleges': {
+      id: '/_authenticated/colleges'
+      path: '/colleges'
+      fullPath: '/colleges'
+      preLoaderRoute: typeof AuthenticatedCollegesImport
+      parentRoute: typeof AuthenticatedImport
+    }
     '/_authenticated/company': {
       id: '/_authenticated/company'
       path: '/company'
@@ -358,6 +379,13 @@ declare module '@tanstack/react-router' {
       path: '/departments'
       fullPath: '/departments'
       preLoaderRoute: typeof AuthenticatedDepartmentsImport
+      parentRoute: typeof AuthenticatedImport
+    }
+    '/_authenticated/faq': {
+      id: '/_authenticated/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof AuthenticatedFaqImport
       parentRoute: typeof AuthenticatedImport
     }
     '/_authenticated/form-charts': {
@@ -467,9 +495,11 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAppraisalEmailRoute: typeof AuthenticatedAppraisalEmailRoute
   AuthenticatedAppraisalTemplateRoute: typeof AuthenticatedAppraisalTemplateRoute
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRoute
+  AuthenticatedCollegesRoute: typeof AuthenticatedCollegesRoute
   AuthenticatedCompanyRoute: typeof AuthenticatedCompanyRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepartmentsRoute: typeof AuthenticatedDepartmentsRoute
+  AuthenticatedFaqRoute: typeof AuthenticatedFaqRoute
   AuthenticatedFormChartsRoute: typeof AuthenticatedFormChartsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgramsRoute: typeof AuthenticatedProgramsRoute
@@ -490,9 +520,11 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAppraisalEmailRoute: AuthenticatedAppraisalEmailRoute,
   AuthenticatedAppraisalTemplateRoute: AuthenticatedAppraisalTemplateRoute,
   AuthenticatedClassesRoute: AuthenticatedClassesRoute,
+  AuthenticatedCollegesRoute: AuthenticatedCollegesRoute,
   AuthenticatedCompanyRoute: AuthenticatedCompanyRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepartmentsRoute: AuthenticatedDepartmentsRoute,
+  AuthenticatedFaqRoute: AuthenticatedFaqRoute,
   AuthenticatedFormChartsRoute: AuthenticatedFormChartsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgramsRoute: AuthenticatedProgramsRoute,
@@ -548,9 +580,11 @@ export interface FileRoutesByFullPath {
   '/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
   '/appraisal-template': typeof AuthenticatedAppraisalTemplateRoute
   '/classes': typeof AuthenticatedClassesRoute
+  '/colleges': typeof AuthenticatedCollegesRoute
   '/company': typeof AuthenticatedCompanyRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/departments': typeof AuthenticatedDepartmentsRoute
+  '/faq': typeof AuthenticatedFaqRoute
   '/form-charts': typeof AuthenticatedFormChartsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/programs': typeof AuthenticatedProgramsRoute
@@ -581,9 +615,11 @@ export interface FileRoutesByTo {
   '/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
   '/appraisal-template': typeof AuthenticatedAppraisalTemplateRoute
   '/classes': typeof AuthenticatedClassesRoute
+  '/colleges': typeof AuthenticatedCollegesRoute
   '/company': typeof AuthenticatedCompanyRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/departments': typeof AuthenticatedDepartmentsRoute
+  '/faq': typeof AuthenticatedFaqRoute
   '/form-charts': typeof AuthenticatedFormChartsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/programs': typeof AuthenticatedProgramsRoute
@@ -616,9 +652,11 @@ export interface FileRoutesById {
   '/_authenticated/appraisal-email': typeof AuthenticatedAppraisalEmailRoute
   '/_authenticated/appraisal-template': typeof AuthenticatedAppraisalTemplateRoute
   '/_authenticated/classes': typeof AuthenticatedClassesRoute
+  '/_authenticated/colleges': typeof AuthenticatedCollegesRoute
   '/_authenticated/company': typeof AuthenticatedCompanyRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/departments': typeof AuthenticatedDepartmentsRoute
+  '/_authenticated/faq': typeof AuthenticatedFaqRoute
   '/_authenticated/form-charts': typeof AuthenticatedFormChartsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/programs': typeof AuthenticatedProgramsRoute
@@ -651,9 +689,11 @@ export interface FileRouteTypes {
     | '/appraisal-email'
     | '/appraisal-template'
     | '/classes'
+    | '/colleges'
     | '/company'
     | '/dashboard'
     | '/departments'
+    | '/faq'
     | '/form-charts'
     | '/profile'
     | '/programs'
@@ -683,9 +723,11 @@ export interface FileRouteTypes {
     | '/appraisal-email'
     | '/appraisal-template'
     | '/classes'
+    | '/colleges'
     | '/company'
     | '/dashboard'
     | '/departments'
+    | '/faq'
     | '/form-charts'
     | '/profile'
     | '/programs'
@@ -716,9 +758,11 @@ export interface FileRouteTypes {
     | '/_authenticated/appraisal-email'
     | '/_authenticated/appraisal-template'
     | '/_authenticated/classes'
+    | '/_authenticated/colleges'
     | '/_authenticated/company'
     | '/_authenticated/dashboard'
     | '/_authenticated/departments'
+    | '/_authenticated/faq'
     | '/_authenticated/form-charts'
     | '/_authenticated/profile'
     | '/_authenticated/programs'
@@ -790,9 +834,11 @@ export const routeTree = rootRoute
         "/_authenticated/appraisal-email",
         "/_authenticated/appraisal-template",
         "/_authenticated/classes",
+        "/_authenticated/colleges",
         "/_authenticated/company",
         "/_authenticated/dashboard",
         "/_authenticated/departments",
+        "/_authenticated/faq",
         "/_authenticated/form-charts",
         "/_authenticated/profile",
         "/_authenticated/programs",
@@ -854,6 +900,10 @@ export const routeTree = rootRoute
       "filePath": "_authenticated/classes.tsx",
       "parent": "/_authenticated"
     },
+    "/_authenticated/colleges": {
+      "filePath": "_authenticated/colleges.tsx",
+      "parent": "/_authenticated"
+    },
     "/_authenticated/company": {
       "filePath": "_authenticated/company.tsx",
       "parent": "/_authenticated"
@@ -864,6 +914,10 @@ export const routeTree = rootRoute
     },
     "/_authenticated/departments": {
       "filePath": "_authenticated/departments.tsx",
+      "parent": "/_authenticated"
+    },
+    "/_authenticated/faq": {
+      "filePath": "_authenticated/faq.tsx",
       "parent": "/_authenticated"
     },
     "/_authenticated/form-charts": {

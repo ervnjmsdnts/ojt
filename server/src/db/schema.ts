@@ -209,6 +209,7 @@ export const ojtApplication = table('ojt_application', {
     .mysqlEnum('status', ['pre-ojt', 'ojt', 'post-ojt', 'completed'])
     .default('pre-ojt')
     .notNull(),
+  academicYear: t.varchar('academic_year', { length: 255 }),
 });
 
 export const logs = table('logs', {

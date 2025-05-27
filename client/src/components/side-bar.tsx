@@ -1,7 +1,6 @@
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -13,7 +12,6 @@ import {
   Home,
   Search,
   User2,
-  MoreVerticalIcon,
   Users2,
   ClipboardCheck,
   ClipboardList,
@@ -23,15 +21,12 @@ import {
   UserPlus,
   BarChart,
   FileText,
+  LogOut,
+  CircleHelp,
+  University,
 } from 'lucide-react';
 import React from 'react';
-import { Link, useLocation, useNavigate } from '@tanstack/react-router';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
+import { Link, useLocation } from '@tanstack/react-router';
 import { User } from '@server/sharedTypes';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { api } from '@/lib/api';
@@ -41,7 +36,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import Logo from './logo';
 
 export default function AppSidebar({ user }: { user: User }) {
-  const navigate = useNavigate();
   const location = useLocation();
   const { totalUnreadCount } = useChat();
   const queryClient = useQueryClient();
@@ -51,6 +45,12 @@ export default function AppSidebar({ user }: { user: User }) {
     queryClient.getQueryData<User>(['get-current-user']) || user;
 
   const items = [
+    {
+      title: 'Profile',
+      url: '/profile',
+      icon: User2,
+      roles: ['student', 'coordinator', 'admin'],
+    },
     {
       title: 'Dashboard',
       url: '/dashboard',
@@ -94,16 +94,22 @@ export default function AppSidebar({ user }: { user: User }) {
       roles: ['coordinator'],
     },
     {
+      title: 'Colleges',
+      url: '/colleges',
+      icon: University,
+      roles: ['admin'],
+    },
+    {
       title: 'Departments',
       url: '/departments',
       icon: School,
-      roles: ['coordinator', 'admin'],
+      roles: ['admin'],
     },
     {
       title: 'Programs',
       url: '/programs',
       icon: GraduationCap,
-      roles: ['coordinator', 'admin'],
+      roles: ['admin'],
     },
     {
       title: 'Classes',
@@ -112,7 +118,7 @@ export default function AppSidebar({ user }: { user: User }) {
       roles: ['coordinator', 'admin'],
     },
     {
-      title: 'Form Charts',
+      title: 'Feedback Summary',
       url: '/form-charts',
       icon: BarChart,
       roles: ['coordinator', 'admin'],
@@ -153,6 +159,12 @@ export default function AppSidebar({ user }: { user: User }) {
       icon: FileText,
       roles: ['student'],
     },
+    {
+      title: 'FAQ',
+      url: '/faq',
+      icon: CircleHelp,
+      roles: ['student', 'coordinator'],
+    },
   ];
 
   const signOut = async () => {
@@ -172,7 +184,21 @@ export default function AppSidebar({ user }: { user: User }) {
               </p>
             </div>
           </SidebarGroupLabel>
-          <SidebarGroupContent>
+          <div className='flex gap-4 pb-4 border-b justify-between w-full'>
+            <Avatar className='h-8 w-8 rounded-lg'>
+              <AvatarImage src={currentUser.profilePictureUrl || undefined} />
+              <AvatarFallback className='rounded-full bg-gray-400'>
+                <User2 />
+              </AvatarFallback>
+            </Avatar>
+            <div className='grid flex-1 text-left text-sm leading-tight'>
+              <span className='truncate font-medium'>{currentUser.srCode}</span>
+              <span className='truncate text-xs text-white'>
+                {currentUser.fullName}
+              </span>
+            </div>
+          </div>
+          <SidebarGroupContent className='pt-4'>
             <SidebarMenu>
               {items.map((item) => (
                 <React.Fragment key={item.url}>
@@ -211,49 +237,17 @@ export default function AppSidebar({ user }: { user: User }) {
                   )}
                 </React.Fragment>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={signOut}
+                  className='flex items-center gap-2'>
+                  <LogOut /> Sign out
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size='lg'>
-                  <Avatar className='h-8 w-8 rounded-lg'>
-                    <AvatarImage
-                      src={currentUser.profilePictureUrl || undefined}
-                    />
-                    <AvatarFallback className='rounded-full bg-gray-200'>
-                      <User2 />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className='grid flex-1 text-left text-sm leading-tight'>
-                    <span className='truncate font-medium'>
-                      {currentUser.srCode}
-                    </span>
-                    <span className='truncate text-xs text-muted-foreground'>
-                      {currentUser.fullName}
-                    </span>
-                  </div>
-                  <MoreVerticalIcon className='ml-auto size-4' />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                side='top'
-                className='w-[--radix-popper-anchor-width]'>
-                <DropdownMenuItem onClick={() => navigate({ to: '/profile' })}>
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={signOut}>
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }

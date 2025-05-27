@@ -680,6 +680,7 @@ export const supervisorFeedbackRoutes = new Hono()
       // Extract query parameters
       const departmentIdStr = c.req.query('departmentId');
       const programIdStr = c.req.query('programId');
+      const academicYearStr = c.req.query('academicYear');
 
       const departmentId = departmentIdStr
         ? parseInt(departmentIdStr)
@@ -739,6 +740,7 @@ export const supervisorFeedbackRoutes = new Hono()
               departmentName: departments.name,
               programName: programs.name,
               supervisorName: ojtApplication.supervisorName,
+              academicYear: ojtApplication.academicYear,
               departmentId: departments.id,
               programId: programs.id,
             })
@@ -763,6 +765,7 @@ export const supervisorFeedbackRoutes = new Hono()
                   supervisor: ojtInfo.supervisorName,
                   departmentId: ojtInfo.departmentId,
                   programId: ojtInfo.programId,
+                  academicYear: ojtInfo.academicYear,
                 }
               : null,
           };
@@ -784,6 +787,12 @@ export const supervisorFeedbackRoutes = new Hono()
         );
       }
 
+      if (academicYearStr) {
+        filteredResponses = filteredResponses.filter(
+          (response) => response.student?.academicYear === academicYearStr,
+        );
+      }
+
       return c.json(filteredResponses);
     } catch (error) {
       console.error(error);
@@ -798,6 +807,7 @@ export const supervisorFeedbackRoutes = new Hono()
         // Extract query parameters
         const departmentIdStr = c.req.query('departmentId');
         const programIdStr = c.req.query('programId');
+        const academicYearStr = c.req.query('academicYear');
 
         const departmentId = departmentIdStr
           ? parseInt(departmentIdStr)
@@ -813,6 +823,7 @@ export const supervisorFeedbackRoutes = new Hono()
             programName: programs.name,
             departmentId: departments.id,
             programId: programs.id,
+            academicYear: ojtApplication.academicYear,
           })
           .from(ojtApplication)
           .innerJoin(users, eq(ojtApplication.studentId, users.id))
@@ -846,6 +857,12 @@ export const supervisorFeedbackRoutes = new Hono()
         if (programId) {
           unansweredOjts = unansweredOjts.filter(
             (ojt) => ojt.programId === programId,
+          );
+        }
+
+        if (academicYearStr) {
+          unansweredOjts = unansweredOjts.filter(
+            (ojt) => ojt.academicYear === academicYearStr,
           );
         }
 

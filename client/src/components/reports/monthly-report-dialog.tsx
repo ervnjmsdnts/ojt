@@ -20,7 +20,11 @@ import {
 } from '../ui/select';
 import { monthNames } from '@/lib/constants';
 
-export default function MonthlyReportDialog() {
+export default function MonthlyReportDialog({
+  ojtStatus,
+}: {
+  ojtStatus: 'pre-ojt' | 'ojt' | 'post-ojt' | 'completed' | undefined;
+}) {
   const [selectedMonth, setSelectedMonth] = useState<Month | null>(null);
 
   const navigate = useNavigate();
@@ -37,7 +41,7 @@ export default function MonthlyReportDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Monthly Report</Button>
+        <Button disabled={ojtStatus === 'pre-ojt'}>Monthly Report</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

@@ -614,7 +614,7 @@ export default function DashboardAdmin({
         </Card>
       </div>
       <div className='w-1/4 flex flex-col gap-4'>
-        <div className='h-2/5 grid gap-4'>
+        <div className='h-full grid gap-4'>
           {isCoordinator && (
             <Card className='overflow-y-auto'>
               <CardHeader>
@@ -681,7 +681,7 @@ export default function DashboardAdmin({
             </CardContent>
           </Card>
         </div>
-        <Card className={cn('h-3/5 flex flex-col', isAdmin && 'h-full')}>
+        {/* <Card className={cn('h-3/5 flex flex-col', isAdmin && 'h-full')}>
           <CardHeader>
             <CardTitle>Chat with Students</CardTitle>
           </CardHeader>
@@ -817,7 +817,7 @@ export default function DashboardAdmin({
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </SidebarInset>
   );

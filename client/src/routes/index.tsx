@@ -6,10 +6,12 @@ import Evan from '@/assets/team/evan.png';
 import Des from '@/assets/team/des.jpg';
 import Joreen from '@/assets/team/joreen.jpg';
 import Nicole from '@/assets/team/nicole.jpg';
+import Adviser from '@/assets/team/adviser.jpg';
 import AppSS from '@/assets/app-ss.png';
 import { userQueryOptions } from '@/lib/api';
 import BSULogo from '@/assets/bsu-logo.png';
 import DECELogo from '@/assets/dece.png';
+import Logo from '@/components/logo';
 
 export const Route = createFileRoute('/')({
   beforeLoad: async ({ context }) => {
@@ -33,23 +35,62 @@ function Index() {
   return (
     <div className='bg-white'>
       {/* Navigation */}
-      <nav className='mx-auto relative z-10 flex max-w-7xl items-center justify-end p-6 lg:px-8'>
-        <div className='flex flex-1 justify-end'>
-          {user ? (
-            <Button
-              variant='link'
-              onClick={() => navigate({ to: '/dashboard' })}
-              className='text-sm font-semibold leading-6 text-gray-900'>
-              Go to Dashboard<span aria-hidden='true'>&rarr;</span>
-            </Button>
-          ) : (
-            <Button
-              variant='link'
-              onClick={() => navigate({ to: '/login' })}
-              className='text-sm font-semibold leading-6 text-gray-900'>
-              Log in<span aria-hidden='true'>&rarr;</span>
-            </Button>
-          )}
+      <nav className='sticky top-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200'>
+        <div className='mx-auto max-w-7xl px-6 lg:px-8'>
+          <div className='flex items-center justify-between h-16'>
+            <div className='flex items-center gap-8'>
+              <Logo />
+              <div className='flex gap-4'>
+                <Button
+                  variant='link'
+                  onClick={() =>
+                    document
+                      .getElementById('about')
+                      ?.scrollIntoView({ behavior: 'smooth' })
+                  }
+                  className='text-sm font-semibold leading-6 text-gray-900'>
+                  About Us
+                </Button>
+                <Button
+                  variant='link'
+                  onClick={() =>
+                    document
+                      .getElementById('team')
+                      ?.scrollIntoView({ behavior: 'smooth' })
+                  }
+                  className='text-sm font-semibold leading-6 text-gray-900'>
+                  Meet the Team
+                </Button>
+                <Button
+                  variant='link'
+                  onClick={() =>
+                    document
+                      .getElementById('guide')
+                      ?.scrollIntoView({ behavior: 'smooth' })
+                  }
+                  className='text-sm font-semibold leading-6 text-gray-900'>
+                  User Guide
+                </Button>
+              </div>
+            </div>
+            <div className='flex flex-1 justify-end'>
+              {user ? (
+                <Button
+                  variant='link'
+                  onClick={() => navigate({ to: '/dashboard' })}
+                  className='text-sm font-semibold leading-6 text-gray-900'>
+                  Go to Dashboard<span aria-hidden='true'>&rarr;</span>
+                </Button>
+              ) : (
+                <Button
+                  variant='link'
+                  onClick={() => navigate({ to: '/login' })}
+                  className='text-sm font-semibold leading-6 text-gray-900'>
+                  Log in<span aria-hidden='true'>&rarr;</span>
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </nav>
 
@@ -66,7 +107,7 @@ function Index() {
           />
         </div>
 
-        <div className='py-24 sm:py-32 lg:pb-40'>
+        <div className='pb-40'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='mx-auto max-w-2xl text-center'>
               <div className='flex items-center justify-evenly'>
@@ -85,11 +126,6 @@ function Index() {
                 <Button onClick={() => navigate({ to: '/login' })}>
                   Get Started
                 </Button>
-                <a
-                  href='#about'
-                  className='text-sm font-semibold leading-6 text-gray-900'>
-                  Learn more <span aria-hidden='true'>→</span>
-                </a>
               </div>
             </div>
             <div className='mt-16 flow-root sm:mt-24'>
@@ -143,18 +179,18 @@ function Index() {
         </div>
 
         {/* Meet the Team Section */}
-        <div className='py-24 sm:py-32'>
+        <div id='team' className='py-24 sm:py-32'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='mx-auto max-w-2xl lg:mx-0'>
               <h2 className='text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl'>
                 Meet the Team
               </h2>
             </div>
-            <div className='mx-auto mt-16 grid gap-x-8 gap-y-16 max-w-none grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
+            <div className='mx-auto mt-16 grid gap-x-6 gap-y-16 max-w-none grid-cols-1 sm:grid-cols-2 lg:grid-cols-5'>
               {team.map((member) => (
                 <div
                   key={member.name}
-                  className='flex flex-col bg-blue-400 items-center rounded-2xl p-8 w-[260px] h-[370px] mx-auto shadow-sm'>
+                  className='flex flex-col bg-blue-400 items-center rounded-2xl p-8 w-full mx-auto shadow-sm'>
                   <img
                     src={member.image}
                     alt={member.name}
@@ -178,7 +214,7 @@ function Index() {
         </div>
 
         {/* User Guide Section */}
-        <div className='py-24 sm:py-32 bg-gray-50'>
+        <div id='guide' className='py-24 sm:py-32 bg-gray-50'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='mx-auto max-w-2xl lg:mx-0'>
               <h2 className='text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl'>
@@ -331,6 +367,11 @@ function Index() {
 }
 
 const team = [
+  {
+    name: 'Dr. Antonette V. Chua',
+    role: 'Project Adviser',
+    image: Adviser,
+  },
   {
     name: 'Evan Gerard S. Macaraig',
     role: 'Project Leader',

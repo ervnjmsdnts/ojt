@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select';
 import CategoryBadge from '@/components/category-badge';
 import { toast } from 'sonner';
+import { ACADEMIC_YEARS } from '@/lib/constants';
 export const Route = createFileRoute('/_authenticated/profile')({
   component: RouteComponent,
 });
@@ -49,6 +50,7 @@ const personalInfoSchema = z.object({
   semester: z.string().min(1),
   totalOJTHours: z.number().min(1),
   email: z.string().email().optional(),
+  academicYear: z.string().min(1),
 });
 
 const adminOrCoorinatorPersonalInfoSchema = z.object({
@@ -98,7 +100,6 @@ function RouteComponent() {
     latestUserData.profilePictureUrl ?? undefined,
   );
 
-  // Subscribe to query cache changes to update UI when user data changes
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe(() => {
       const newUserData = queryClient.getQueryData<typeof initialUser>([
@@ -137,6 +138,7 @@ function RouteComponent() {
       semester: studentOJT?.semester ?? '',
       totalOJTHours: studentOJT?.totalOJTHours ?? 0,
       classId: studentOJT?.class?.id ?? 0,
+      academicYear: studentOJT?.academicYear ?? '',
       email: latestUserData.email,
     },
   });
@@ -537,6 +539,31 @@ function RouteComponent() {
                       />
                       <FormField
                         control={personalInfoForm.control}
+                        name='academicYear'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Academic Year</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder='Select an academic year' />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {ACADEMIC_YEARS.map((year) => (
+                                  <SelectItem key={year} value={year}>
+                                    {year}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={personalInfoForm.control}
                         name='totalOJTHours'
                         render={({ field }) => (
                           <FormItem>
@@ -639,6 +666,12 @@ function RouteComponent() {
                 <div>
                   <p className='text-sm font-medium text-gray-500'>Semester</p>
                   <p>{studentOJT?.semester || ''}</p>
+                </div>
+                <div>
+                  <p className='text-sm font-medium text-gray-500'>
+                    Academic Year
+                  </p>
+                  <p>{studentOJT?.academicYear || ''}</p>
                 </div>
                 <div>
                   <p className='text-sm font-medium text-gray-500'>

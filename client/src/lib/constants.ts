@@ -12,3 +12,10 @@ export const monthNames: string[] = [
   'November',
   'December',
 ];
+
+export const ACADEMIC_YEARS = [
+  '2024-2025',
+  '2025-2026',
+  '2026-2027',
+  '2027-2028',
+];

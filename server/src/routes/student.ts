@@ -46,6 +46,7 @@ const updatePersonalInfoSchema = z.object({
   yearLevel: z.string().min(1),
   semester: z.string().min(1),
   totalOJTHours: z.number().min(1),
+  academicYear: z.string().min(1),
 });
 
 const updateSupervisorInfoSchema = z.object({
@@ -114,6 +115,7 @@ export const studentRoutes = new Hono()
           id: ojtApplication.id,
           status: ojtApplication.status,
           studentId: ojtApplication.studentId,
+          academicYear: ojtApplication.academicYear,
           coordinatorId: ojtApplication.coordinatorId,
           companyId: ojtApplication.companyId,
           totalOJTHours: ojtApplication.totalOJTHours,
@@ -406,6 +408,7 @@ export const studentRoutes = new Hono()
         program: ojt.programs,
         department: ojt.departments,
         company: ojt.companies,
+        academicYear: ojt.ojt_application.academicYear ?? null,
         ...groupedByCategory,
       });
     } catch (error) {
@@ -623,6 +626,7 @@ export const studentRoutes = new Hono()
           yearLevel: data.yearLevel,
           semester: data.semester,
           totalOJTHours: data.totalOJTHours,
+          academicYear: data.academicYear,
         };
 
         await db.transaction(async (tx) => {

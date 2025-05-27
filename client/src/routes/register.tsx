@@ -10,6 +10,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,7 +20,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { api, getClasses, userQueryOptions } from '@/lib/api';
+import { api, getClasses, userQueryOptions, getPrograms } from '@/lib/api';
 import { z } from 'zod';
 import {
   Select,
@@ -31,6 +32,9 @@ import {
 import { ParsedFormValue } from 'hono/types';
 import { toast } from 'sonner';
 import Banner from '@/assets/banner.png';
+import React from 'react';
+import { ACADEMIC_YEARS } from '@/lib/constants';
+
 export const Route = createFileRoute('/register')({
   beforeLoad: async ({ context }) => {
     const queryClient = context.queryClient;
@@ -54,6 +58,8 @@ const schema = z.object({
   gender: z.enum(['male', 'female']),
   yearLevel: z.string().min(1),
   semester: z.string().min(1),
+  programId: z.coerce.number(),
+  academicYear: z.string().min(1),
 });
 
 type Schema = z.infer<typeof schema>;
@@ -85,14 +91,27 @@ function RouteComponent() {
     return navigate({ to: '/dashboard' });
   }
 
-  const { isPending, data: classes } = useQuery({
+  const { isPending: isClassesPending, data: allClasses } = useQuery({
     queryKey: ['classes'],
     queryFn: getClasses,
+  });
+
+  const { isPending: isProgramsPending, data: programs } = useQuery({
+    queryKey: ['programs'],
+    queryFn: getPrograms,
   });
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
   });
+
+  const selectedProgramId = form.watch('programId');
+  const filteredClasses = React.useMemo(() => {
+    if (!selectedProgramId || !allClasses) return [];
+    return allClasses.filter(
+      (c) => c.program?.id === Number(selectedProgramId),
+    );
+  }, [selectedProgramId, allClasses]);
 
   const { mutate } = useMutation({ mutationFn: register });
 
@@ -157,7 +176,10 @@ function RouteComponent() {
                         <FormItem>
                           <FormLabel>Full Name</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input
+                              placeholder='First Name Middle Initial Last Name'
+                              {...field}
+                            />
                           </FormControl>
                         </FormItem>
                       )}
@@ -189,8 +211,6 @@ function RouteComponent() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value='1st year'>1st year</SelectItem>
-                              <SelectItem value='2nd year'>2nd year</SelectItem>
                               <SelectItem value='3rd year'>3rd year</SelectItem>
                               <SelectItem value='4th year'>4th year</SelectItem>
                             </SelectContent>
@@ -200,6 +220,31 @@ function RouteComponent() {
                     />
                   </div>
                   <div>
+                    <FormField
+                      control={form.control}
+                      name='academicYear'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Academic Year</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder='Select an academic year' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {ACADEMIC_YEARS.map((year) => (
+                                <SelectItem key={year} value={year}>
+                                  {year}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name='semester'
@@ -253,6 +298,36 @@ function RouteComponent() {
                     />
                     <FormField
                       control={form.control}
+                      name='programId'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Program</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value?.toString()}>
+                            <FormControl>
+                              <SelectTrigger disabled={isProgramsPending}>
+                                <SelectValue placeholder='Select a program' />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {!isProgramsPending &&
+                                programs &&
+                                programs.map((c) => (
+                                  <SelectItem
+                                    key={c.id}
+                                    value={c.id.toString()}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
                       name='classId'
                       render={({ field }) => (
                         <FormItem>
@@ -261,14 +336,13 @@ function RouteComponent() {
                             onValueChange={field.onChange}
                             defaultValue={field.value?.toString()}>
                             <FormControl>
-                              <SelectTrigger disabled={isPending}>
+                              <SelectTrigger disabled={isClassesPending}>
                                 <SelectValue placeholder='Select a class' />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {!isPending &&
-                                classes &&
-                                classes.map((c) => (
+                              {!isClassesPending &&
+                                filteredClasses.map((c) => (
                                   <SelectItem
                                     key={c.id}
                                     value={c.id.toString()}>

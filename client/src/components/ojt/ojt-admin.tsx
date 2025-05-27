@@ -37,6 +37,7 @@ import { View } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
+import { ACADEMIC_YEARS } from '@/lib/constants';
 
 export default function OJTAdmin({
   role,
@@ -79,6 +80,9 @@ export default function OJTAdmin({
   const [filterDepartment, setFilterDepartment] = useState<string | 'any'>(
     'any',
   );
+  const [filterAcademicYear, setFilterAcademicYear] = useState<string | 'any'>(
+    'any',
+  );
 
   const [editingRow, setEditingRow] = useState<number | null>(null);
 
@@ -119,12 +123,18 @@ export default function OJTAdmin({
           ? true
           : ojt.department?.name === filterDepartment;
 
+      const academicYearMatches =
+        filterAcademicYear === 'any'
+          ? true
+          : ojt.academicYear === filterAcademicYear;
+
       return (
         nameMatches &&
         statusMatches &&
         programMatches &&
         departmentMatches &&
-        classMatches
+        classMatches &&
+        academicYearMatches
       );
     });
   }, [
@@ -134,6 +144,7 @@ export default function OJTAdmin({
     filterProgram,
     filterDepartment,
     filterClass,
+    filterAcademicYear,
   ]);
 
   const { currentItems, paginate, currentPage, totalPages } =
@@ -213,6 +224,24 @@ export default function OJTAdmin({
               </SelectContent>
             </Select>
           </div>
+          <div className='flex items-center gap-1'>
+            <p className='text-sm text-muted-foreground'>A.Y.:</p>
+            <Select
+              defaultValue='any'
+              onValueChange={(value) => setFilterAcademicYear(value)}>
+              <SelectTrigger className='w-[120px]'>
+                <SelectValue placeholder='Select academic year...' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='any'>Any</SelectItem>
+                {ACADEMIC_YEARS.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       <div className='flex flex-1 flex-col gap-4'>
@@ -226,6 +255,7 @@ export default function OJTAdmin({
                 </TableHead>
                 <TableHead>OJT Hours</TableHead>
                 <TableHead>Class</TableHead>
+                <TableHead>Academic Year</TableHead>
                 {role === 'admin' && <TableHead>Coordinator</TableHead>}
                 <TableHead>Company</TableHead>
                 <TableHead className='text-center'>Submissions</TableHead>
@@ -271,6 +301,11 @@ export default function OJTAdmin({
                     </TableCell>
                     <TableCell>
                       {ojt?.class ? ojt.class.name : 'Not assigned yet'}
+                    </TableCell>
+                    <TableCell>
+                      {ojt?.academicYear
+                        ? ojt.academicYear
+                        : 'Not assigned yet'}
                     </TableCell>
                     {role === 'admin' && (
                       <TableCell>

@@ -38,6 +38,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useReactToPrint } from 'react-to-print';
 import { Printer } from 'lucide-react';
+import { ACADEMIC_YEARS } from '@/lib/constants';
 // Custom X-Axis Tick component to render wrapped text
 const CustomXAxisTick = (props: any) => {
   const { x, y, payload, questions } = props;
@@ -194,6 +195,9 @@ function RouteComponent() {
   const [selectedProgramId, setSelectedProgramId] = useState<
     number | undefined
   >();
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState<
+    string | undefined
+  >();
   const [availablePrograms, setAvailablePrograms] = useState<Program[]>([]);
 
   // Query for departments and programs
@@ -220,21 +224,33 @@ function RouteComponent() {
     isLoading: isLoadingFeedback,
     refetch,
   } = useQuery({
-    queryKey: ['feedback-responses', selectedDepartmentId, selectedProgramId],
+    queryKey: [
+      'feedback-responses',
+      selectedDepartmentId,
+      selectedProgramId,
+      selectedAcademicYear,
+    ],
     queryFn: () =>
       getAllFeedbackResponses({
         departmentId: selectedDepartmentId,
         programId: selectedProgramId,
+        academicYear: selectedAcademicYear,
       }),
   });
 
   // // Query for unanswered feedback counts - always call this hook regardless of data state
   const { data: unansweredData, isLoading: isLoadingUnanswered } = useQuery({
-    queryKey: ['unanswered-feedback', selectedDepartmentId, selectedProgramId],
+    queryKey: [
+      'unanswered-feedback',
+      selectedDepartmentId,
+      selectedProgramId,
+      selectedAcademicYear,
+    ],
     queryFn: () =>
       getUnansweredFeedback({
         departmentId: selectedDepartmentId,
         programId: selectedProgramId,
+        academicYear: selectedAcademicYear,
       }),
   });
 
@@ -330,9 +346,14 @@ function RouteComponent() {
     setSelectedProgramId(programId);
   };
 
+  const handleAYChange = (value: string) => {
+    setSelectedAcademicYear(value);
+  };
+
   const handleClearFilters = () => {
     setSelectedDepartmentId(undefined);
     setSelectedProgramId(undefined);
+    setSelectedAcademicYear(undefined);
     refetch();
   };
 
@@ -378,7 +399,7 @@ function RouteComponent() {
 
   return (
     <SidebarInset className='py-4 px-8 flex flex-col gap-4'>
-      <PageHeaderText>Feedback Response Analytics</PageHeaderText>
+      <PageHeaderText>Feedback Summary</PageHeaderText>
 
       {/* Filter UI */}
       <Card className='mb-4'>
@@ -431,6 +452,24 @@ function RouteComponent() {
                         {program.name}
                       </SelectItem>
                     ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className='flex-1 min-w-[200px]'>
+              <FormLabel htmlFor='ay-select'>A.Y.</FormLabel>
+              <Select
+                value={selectedAcademicYear || 'all'}
+                onValueChange={handleAYChange}>
+                <SelectTrigger id='ay-select'>
+                  <SelectValue placeholder='Select academic year' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>All Academic Years</SelectItem>
+                  {ACADEMIC_YEARS.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import usePagination from '@/hooks/use-pagination';
-import { getReports } from '@/lib/api';
+import { getReports, getCurrentOJT } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { format } from 'date-fns';
@@ -28,6 +28,11 @@ function RouteComponent() {
     queryFn: getReports,
   });
 
+  const { isPending: studentOJTPending, data: studentOJT } = useQuery({
+    queryKey: ['student-ojt'],
+    queryFn: getCurrentOJT,
+  });
+
   const { currentItems, paginate, currentPage, totalPages } = usePagination(
     reports!,
   );
@@ -38,8 +43,8 @@ function RouteComponent() {
       <div className='flex w-full items-center justify-between'>
         <div className='flex items-center gap-3'></div>
         <div className='flex items-center gap-2'>
-          <AddDailyReportDialog />
-          <MonthlyReportDialog />
+          <AddDailyReportDialog ojtStatus={studentOJT?.ojtStatus} />
+          <MonthlyReportDialog ojtStatus={studentOJT?.ojtStatus} />
         </div>
       </div>
       <div className='flex flex-1 flex-col gap-4'>
